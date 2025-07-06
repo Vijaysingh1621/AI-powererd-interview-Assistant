@@ -21,6 +21,13 @@ interface ChatTranscriptionProps {
 
 export function ChatTranscription({ messages, onClear, className }: ChatTranscriptionProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [renderKey, setRenderKey] = useState(0);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setRenderKey(prev => prev + 1);
+  }, [messages]);
 
   const formatTime = (timestamp: string) => {
     try {
@@ -34,130 +41,77 @@ export function ChatTranscription({ messages, onClear, className }: ChatTranscri
     }
   };
 
-  const getSpeakerInfo = (speaker: string) => {
-    switch (speaker) {
-      case 'user':
-      case 'external':
-        return {
-          name: 'Interviewer',
-          icon: User,
-          bgColor: 'bg-blue-500',
-          textColor: 'text-blue-600',
-          alignment: 'justify-start'
-        };
-      case 'system':
-        return {
-          name: 'Me',
-          icon: Monitor,
-          bgColor: 'bg-green-500',
-          textColor: 'text-green-600',
-          alignment: 'justify-end'
-        };
-      default:
-        return {
-          name: 'Unknown',
-          icon: MessageCircle,
-          bgColor: 'bg-gray-500',
-          textColor: 'text-gray-600',
-          alignment: 'justify-start'
-        };
-    }
-  };
-
   return (
     <div className={cn("flex flex-col h-full", className)}>
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b bg-gray-50">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-          <h3 className="font-medium text-gray-700">Live Transcription</h3>
-          <span className="text-xs text-gray-500">({messages.length} messages)</span>
+      <div className="flex items-center justify-between p-4 border-b bg-blue-50">
+        <div className="flex items-center gap-3">
+          <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+          <h3 className="font-semibold text-gray-800 text-lg">📝 Interview Transcript</h3>
+          <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded">
+            {messages.length} entries
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <Button
             onClick={onClear}
             variant="outline"
             size="sm"
-            className="text-xs"
+            className="text-sm"
           >
-            Clear Chat
+            Clear Transcript
           </Button>
         </div>
       </div>
 
-      {/* Legend */}
-      <div className="px-3 py-2 bg-gray-50 border-b text-xs text-gray-600">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1">
-            <User className="w-3 h-3 text-blue-600" />
-            <span>Interviewer (Left)</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <span>Me (Right)</span>
-            <Monitor className="w-3 h-3 text-green-600" />
-          </div>
-        </div>
-      </div>
-
-      {/* Messages */}
-      <div 
-        className="flex-1 overflow-y-auto p-3 space-y-3"
-      >
+      {/* Transcript Content */}
+      <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full text-gray-500">
             <div className="text-center">
-              <div className="text-2xl mb-2">🎙️</div>
-              <p className="text-sm">Start listening to see transcription...</p>
-              <p className="text-xs mt-1">Interviewer will appear on the left, your audio on the right</p>
+              <div className="text-4xl mb-3">🎙️</div>
+              <p className="text-lg font-medium mb-2">Interview Transcript</p>
+              <p className="text-sm">Start speaking to see the live transcription...</p>
             </div>
           </div>
         ) : (
-          messages.map((message) => {
-            const speakerInfo = getSpeakerInfo(message.speaker);
-            const IconComponent = speakerInfo.icon;
-
-            return (
+          <div className="space-y-3">
+            {messages.map((message, index) => (
               <div
                 key={message.id}
-                className={cn("flex", speakerInfo.alignment)}
+                className="bg-white rounded-lg p-4 shadow-sm border"
               >
-                <div
-                  className={cn(
-                    "max-w-[85%] rounded-lg px-3 py-2 shadow-sm",
-                    message.speaker === 'system' 
-                      ? "bg-green-100 ml-auto" 
-                      : "bg-blue-100 mr-auto",
-                    message.isInterim && "opacity-70 italic"
+                {/* Timestamp */}
+                <div className="flex items-center gap-2 mb-2 text-xs text-gray-500">
+                  <span className="font-medium">#{index + 1}</span>
+                  <span>•</span>
+                  <span>{formatTime(message.timestamp)}</span>
+                  <span>•</span>
+                  <span className={cn(
+                    "px-2 py-1 rounded-full text-xs font-medium",
+                    message.isInterim 
+                      ? "bg-yellow-100 text-yellow-700" 
+                      : "bg-green-100 text-green-700"
+                  )}>
+                    {message.isInterim ? "Speaking..." : "Complete"}
+                  </span>
+                </div>
+                
+                {/* Transcript Text */}
+                <div className={cn(
+                  "text-gray-800 leading-relaxed",
+                  message.isInterim && "italic text-gray-600"
+                )}>
+                  {message.text || "(No speech detected)"}
+                  {message.isInterim && (
+                    <span className="ml-1 text-gray-400 animate-pulse">...</span>
                   )}
-                >
-                  {/* Speaker header */}
-                  <div className={cn(
-                    "flex items-center gap-1 mb-1 text-xs font-medium",
-                    speakerInfo.textColor
-                  )}>
-                    <IconComponent className="w-3 h-3" />
-                    <span>{speakerInfo.name}</span>
-                    <span className="text-gray-400 ml-auto">
-                      {formatTime(message.timestamp)}
-                    </span>
-                  </div>
-                  
-                  {/* Message text */}
-                  <div className={cn(
-                    "text-sm text-gray-800",
-                    message.isInterim && "text-gray-600"
-                  )}>
-                    {message.text}
-                    {message.isInterim && (
-                      <span className="ml-1 text-gray-400">...</span>
-                    )}
-                  </div>
                 </div>
               </div>
-            );
-          })
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
         )}
-        <div ref={messagesEndRef} />
       </div>
     </div>
   );

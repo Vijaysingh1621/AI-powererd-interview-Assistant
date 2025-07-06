@@ -8,10 +8,10 @@ import { testDeepgramConnection } from '@/lib/deepgramTest';
 import { AudioTranscriptDiagnostic } from '@/lib/diagnosticTool';
 import dynamic from 'next/dynamic';
 
-// Dynamically import WASAPIRecorder to avoid SSR issues
-const WASAPIRecorder = dynamic(() => import("@/components/WASAPIRecorder"), {
+// Dynamically import SimpleRecorder to avoid SSR issues
+const SimpleRecorder = dynamic(() => import("@/components/SimpleRecorder"), {
   ssr: false,
-  loading: () => <div className="text-sm text-gray-500">Loading WASAPI recorder...</div>
+  loading: () => <div className="text-sm text-gray-500">Loading recorder...</div>
 });
 
 export default function DebugPage() {
@@ -137,7 +137,7 @@ export default function DebugPage() {
   };
   
   const runComprehensiveDiagnostic = async () => {
-    addLog('🔍 Starting comprehensive WASAPI + Deepgram diagnostic...');
+    addLog('🔍 Starting comprehensive interview recorder diagnostic...');
     setIsDiagnosticRunning(true);
     setDiagnosticResults(null);
     
@@ -203,7 +203,7 @@ export default function DebugPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <h1 className="text-3xl font-bold">WASAPI + Deepgram Debug Console</h1>
+      <h1 className="text-3xl font-bold">Interview Recorder Debug Console</h1>
       
       {/* Test Controls */}
       <Card>
@@ -274,13 +274,13 @@ export default function DebugPage() {
         </CardContent>
       </Card>
 
-      {/* WASAPI Recorder */}
+      {/* Simple Recorder */}
       <Card>
         <CardHeader>
-          <CardTitle>WASAPI Recorder Test</CardTitle>
+          <CardTitle>Interview Recorder Test</CardTitle>
         </CardHeader>
         <CardContent>
-          <WASAPIRecorder
+          <SimpleRecorder
             addTextinTranscription={addTextinTranscription}
             onTranscriptionUpdate={onTranscriptionUpdate}
             onStatusChange={onStatusChange}

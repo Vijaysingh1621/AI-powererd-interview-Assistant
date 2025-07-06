@@ -1,105 +1,170 @@
-# Realtime Interview Copilot
+# Real-time Interview Transcription System
 
 ## Description
 
-Realtime Interview Copilot is a web application that assists users in crafting responses during interviews. It leverages real-time audio transcription and AI-powered response generation to provide relevant and concise answers.
+A modern, real-time interview transcription application built with Next.js that captures screen audio and provides live transcription using Deepgram's speech-to-text API. This system is designed for seamless interview recording and transcription with a clean, professional interface.
 
-## Technologies
+## 🚀 Features
 
-- Frontend: React, TypeScript, Next.js, Tailwind CSS, Shadcn/UI
-- Backend: Node.js
-- APIs: Deepgram (transcription), Anthropic Claude-3-Sonnet (reasoning), Google Gemini (embeddings)
-- Vector Database: Pinecone (multimodal embeddings)
-- Web Search: Tavily API
-- RAG Pipeline: Custom agentic architecture with context fusion
+### Core Functionality
 
-## Features
+- **Real-time Screen Audio Capture**: Uses browser's `getDisplayMedia` API to capture system audio from screen sharing
+- **Live Transcription**: Integrates with Deepgram's real-time speech-to-text API for instant transcription
+- **Single Audio Source**: Simplified architecture using only screen audio (no microphone complexity)
+- **Professional UI**: Clean interview transcript interface with live screen sharing display
+- **Connection Monitoring**: Real-time connection status and health monitoring for Deepgram
 
-- Real-time audio transcription using Deepgram
-- AI-powered response generation using Anthropic Claude-3-Sonnet
-- **RAG-powered contextual responses** with PDF document search
-- **Multimodal embeddings** supporting text and image content using Google Gemini
-- **Real-time web search** integration with citations
-- **Chat-style transcription interface** with smart speaker detection
-- PDF document upload and semantic search
-- Customizable interview background information
-- Transcription text editing with dual view modes (Chat/Text)
-- Toggle between Copilot and Summerizer modes
-- Automatic question extraction from transcripts
-- Context fusion from multiple sources (PDFs + web)
-- Smart audio source separation (External vs System audio)
+### Key Components
 
-## Installation and Setup
+- **SimpleRecorder**: Modern React component for screen capture and audio transcription
+- **Interview Transcript View**: Professional transcript display with timestamp and speaker identification
+- **Live Screen Display**: Full-size video display of shared screen content
+- **Connection Health**: Auto-reconnect functionality and connection status indicators
 
-1. Clone the repository:
+## 🏗️ Architecture
 
-    ```bash
-    git clone https://github.com/innovatorved/realtime-interview-copilot.git
-    ```
+### Technology Stack
 
-2. Install dependencies:
+- **Frontend**: Next.js 14, React 18, TypeScript
+- **UI Framework**: Tailwind CSS, Radix UI components
+- **Speech-to-Text**: Deepgram Real-time API
+- **Audio Capture**: Browser Web APIs (getDisplayMedia, MediaRecorder)
+- **State Management**: React hooks and context
 
-    ```bash
-    yarn install
-    ```
+### Simplified Design
 
-3. Create a `.env.local` file in the project root and add your API keys:
+The application has been streamlined to remove complex WASAPI dependencies and dual-channel audio processing. The new architecture focuses on:
 
-    A template `.env.local` file has been created for you. Replace the placeholder values with your actual API keys:
+1. **Single Screen Audio Source**: Captures audio directly from screen sharing
+2. **Direct Deepgram Integration**: Real-time WebSocket connection to Deepgram
+3. **Browser-native APIs**: Uses standard Web APIs for maximum compatibility
+4. **Clean Component Structure**: Modular, maintainable React components
 
-    - **`DEEPGRAM_API_KEY`**: Get from [Deepgram Console](https://console.deepgram.com/)
-    - **`GEMINI_API_KEY`**: Get from [Google AI Studio](https://makersuite.google.com/app/apikey) (for embeddings)
-    - **`ANTHROPIC_API_KEY`**: Get from [Anthropic Console](https://console.anthropic.com/) (for reasoning)
-    - **`PINECONE_API_KEY`**: Get from [Pinecone Console](https://app.pinecone.io/)
-    - **`PINECONE_ENVIRONMENT`**: Your Pinecone environment (default: "us-east1-gcp")
-    - **`PINECONE_INDEX_NAME`**: Name of your Pinecone index (default: "interview-docs")
-    - **`TAVILY_API_KEY`**: Get from [Tavily Console](https://app.tavily.com/)
+## 📦 Installation and Setup
 
-4. **Set up your Pinecone vector database:**
+1. **Clone the repository**:
 
-    ```bash
-    yarn setup-pinecone
-    ```
+   ```bash
+   git clone <repository-url>
+   cd final-ai-intervie
+   ```
 
-    This will create the required Pinecone index with the correct specifications for Gemini embeddings (768 dimensions).
+2. **Install dependencies**:
 
-    ⚠️ **Note**: You must add your actual API keys to `.env.local` before running this command.
+   ```bash
+   npm install
+   # or
+   pnpm install
+   ```
 
-5. **Verify your setup:**
+3. **Environment Setup**:
+   Create a `.env.local` file with your Deepgram API key:
 
-    ```bash
-    yarn verify-setup
-    ```
+   ```env
+   NEXT_PUBLIC_DEEPGRAM_API_KEY=your_deepgram_api_key_here
+   ```
 
-    This will check all your API keys and connections to ensure everything is configured correctly.
+4. **Run the development server**:
 
-## Usage
+   ```bash
+   npm run dev
+   # or
+   pnpm dev
+   ```
 
-1. **Run the development server:**
+5. **Open your browser** and navigate to `http://localhost:3000`
 
-    ```bash
-    yarn dev
-    ```
+## 🎯 Usage
 
-2. **Access the application** in your browser at http://localhost:3000.
-3. **Upload PDF documents** to enhance your knowledge base for specific topics.
-4. Provide interview background information in the "Interview Background" section.
-5. Start listening to the interview conversation by clicking the "Start listening" button.
-6. The transcribed text will appear in the "Transcription" section. You can edit it if needed.
-7. Choose between Copilot or Summerizer mode using the toggle switch.
-8. Click the "Process" button to generate AI-powered responses that:
-   - Extract key questions from the transcript
-   - Search your uploaded PDFs for relevant context
-   - Perform real-time web searches for current information
-   - Combine all sources to provide comprehensive, cited responses
+### Starting a Recording Session
 
-## RAG Architecture Features
+1. Click "Connect & Share Screen" button
+2. Select the tab, window, or entire screen you want to share
+3. Ensure the selected source includes audio
+4. The system will automatically connect to Deepgram and start transcription
 
-- **Multimodal Embeddings**: Supports both text and image content using Google Gemini
-- **Intelligent Chunking**: Documents are split into 1,000-word semantic chunks
-- **Hybrid Search**: Combines PDF document search with real-time web search
-- **Context Fusion**: Intelligently merges information from multiple sources
-- **Citation Tracking**: All responses include proper source attribution
+### During Recording
+
+- **Live Video**: See the shared screen in real-time
+- **Live Transcript**: View transcription as it happens
+- **Connection Status**: Monitor Deepgram connection health
+- **Statistics**: Track message count and session uptime
+
+### Stopping Recording
+
+- Click "Stop Recording" to end the session
+- All tracks will be stopped and connections closed cleanly
+
+## 🔧 Configuration
+
+### Deepgram Settings
+
+The application uses optimized Deepgram configuration:
+
+- **Model**: Nova-2 (latest high-accuracy model)
+- **Language**: English (US)
+- **Sample Rate**: 16kHz
+- **Channels**: Mono (1 channel)
+- **Features**: Punctuation, smart formatting, interim results
+
+### Audio Capture Settings
+
+- **Format**: WebM with Opus codec
+- **Chunk Size**: 100ms for real-time processing
+- **Audio Processing**: Disabled echo cancellation and noise suppression for cleaner capture
+
+## 🛠️ Recent Changes
+
+### Major Simplification (Latest Update)
+
+- **Removed WASAPI Dependencies**: Eliminated complex Windows-specific audio capture
+- **Single Audio Source**: Now uses only screen audio capture via browser APIs
+- **Simplified Components**: Replaced complex dual-channel system with streamlined single-source recording
+- **Enhanced UI**: Improved user experience with cleaner interface and better error handling
+- **Browser Compatibility**: Works across all modern browsers without OS-specific dependencies
+
+### Benefits of New Architecture
+
+- **Easier Setup**: No complex audio driver requirements
+- **Better Reliability**: Fewer moving parts, more stable connections
+- **Cross-platform**: Works on Windows, Mac, and Linux
+- **Simplified Debugging**: Clearer error messages and connection status
+
+## 🔍 File Structure
+
+```
+components/
+├── SimpleRecorder.tsx      # Main recording component
+├── ChatTranscription.tsx   # Transcript display component
+├── copilot.tsx            # Main application orchestrator
+└── ui/                    # Reusable UI components
+
+lib/
+├── simpleDeepgramClient.ts # Simplified Deepgram client
+├── transcriptionManager.ts # Transcript management utilities
+└── utils.ts               # Utility functions
+
+app/
+├── page.tsx               # Main application page
+├── layout.tsx             # Application layout
+└── globals.css            # Global styles
+```
+
+## 🔒 Security & Privacy
+
+- **Local Processing**: Audio is streamed directly to Deepgram without local storage
+- **Secure Connections**: Uses WebSocket Secure (WSS) for Deepgram communication
+- **No Persistent Data**: Transcripts are handled in memory during sessions
+- **API Key Security**: Environment variables protect sensitive credentials
+
+## 🆘 Support
+
+For support and questions:
+
+- Check the troubleshooting guide in `/docs`
+- Review the debug console at `/debug`
+- Ensure your Deepgram API key is properly configured
+- Verify browser permissions for screen sharing and audio capture
 
 ## Contributing
 

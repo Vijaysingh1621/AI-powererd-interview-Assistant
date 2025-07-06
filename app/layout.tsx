@@ -28,8 +28,7 @@ export default function RootLayout({
           {children}
         </div>
         <Analytics />
-        {/* WASAPI Browser Test Script */}
-        <script src="/wasapi-browser-test.js"></script>
+
       </body>
     </html>
   );

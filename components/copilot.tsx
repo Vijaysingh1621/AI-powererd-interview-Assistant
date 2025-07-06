@@ -14,10 +14,10 @@ import { PDFModal } from "@/components/PDFModal";
 import { transcriptionManager, ChatMessage } from "@/lib/transcriptionManager";
 import { ChatTranscription } from "@/components/ChatTranscription";
 
-// Dynamically import WASAPIRecorder to avoid SSR issues
-const WASAPIRecorder = dynamic(() => import("@/components/WASAPIRecorder"), {
+// Dynamically import SimpleRecorder to avoid SSR issues
+const SimpleRecorder = dynamic(() => import("@/components/SimpleRecorder"), {
   ssr: false,
-  loading: () => <div className="text-sm text-gray-500">Loading WASAPI recorder...</div>
+  loading: () => <div className="text-sm text-gray-500">Loading recorder...</div>
 });
 
 interface CopilotProps {
@@ -266,7 +266,12 @@ export function Copilot({ addInSavedData }: CopilotProps) {
   // Update chat messages periodically
   useEffect(() => {
     const interval = setInterval(() => {
-      setChatMessages(transcriptionManager.getMessages());
+      const messages = transcriptionManager.getMessages();
+      console.log('🔄 Periodic chat update - Messages from transcriptionManager:', messages.length);
+      if (messages.length > 0) {
+        console.log('🔄 Latest message:', messages[messages.length - 1]);
+      }
+      setChatMessages([...messages]); // Force new array to trigger re-render
     }, 500);
 
     return () => clearInterval(interval);
@@ -275,9 +280,10 @@ export function Copilot({ addInSavedData }: CopilotProps) {
   const addTextinTranscription = (text: string, speaker: 'user' | 'system' | 'external' = 'external') => {
     console.log('🎯 addTextinTranscription called:', { text, speaker });
     
-    // Use the transcription manager to format and prevent duplicates
+    // Since the WASAPI handler already adds messages to transcriptionManager,
+    // we just need to update the UI state and add to the input field
     const formattedText = transcriptionManager.formatWithTimestamp(text);
-    console.log('📝 Formatted text:', formattedText);
+    console.log('📝 Formatted text for input:', formattedText);
     
     setInput((prev) => {
       const newValue = prev + formattedText;
@@ -293,10 +299,10 @@ export function Copilot({ addInSavedData }: CopilotProps) {
     
     setLastAddedText(text); // Keep track for additional safety
     
-    // Update chat messages from transcription manager
+    // Force update chat messages from transcription manager
     const messages = transcriptionManager.getMessages();
-    console.log('💬 Chat messages updated:', messages.length, 'messages');
-    setChatMessages(messages);
+    console.log('💬 Forcing chat messages update:', messages.length, 'messages');
+    setChatMessages([...messages]); // Create new array to force re-render
   };
 
   const addSpeakerLabel = (speaker: string) => {
@@ -387,11 +393,15 @@ export function Copilot({ addInSavedData }: CopilotProps) {
       <div className="px-2">
         <div className="grid gap-6 md:grid-cols-2">
         <div className="grid gap-1.5">
-          <WASAPIRecorder
+          <SimpleRecorder
             addTextinTranscription={addTextinTranscription}
             onTranscriptionUpdate={(message) => {
               // Handle real-time transcription updates
               console.log('Real-time transcription:', message);
+              // Also force update chat messages in case the periodic update isn't working
+              const messages = transcriptionManager.getMessages();
+              console.log('🔄 Manual chat update after transcription:', messages.length);
+              setChatMessages([...messages]);
             }}
             onStatusChange={(isActive) => {
               // Handle recording status changes

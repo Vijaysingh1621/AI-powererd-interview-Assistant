@@ -27,7 +27,10 @@ export class TranscriptionManager {
    * @returns Whether this text should be added to the transcription
    */
   shouldAddTranscript(text: string, isFinal: boolean = true, speaker: 'user' | 'system' | 'external' = 'external'): boolean {
+    console.log(`🔍 TranscriptionManager.shouldAddTranscript: "${text}" (final: ${isFinal}, speaker: ${speaker})`);
+    
     if (!text || text.trim().length < this.MIN_TEXT_LENGTH) {
+      console.log(`❌ Text too short: "${text}"`);
       return false;
     }
 
@@ -36,19 +39,22 @@ export class TranscriptionManager {
 
     // For interim results, be more lenient
     if (!isFinal) {
-      // Allow interim results but with basic filtering
-      this.addMessage(text, speaker, true);
+      console.log(`✅ Allowing interim result: "${text}"`);
+      // Add interim message but don't track for duplicates
+      this.addMessage(text, speaker, false);
       return true;
     }
 
     // For final results, apply stricter filtering
     // Check if we've seen this exact text before
     if (this.finalTranscripts.has(normalizedText)) {
+      console.log(`❌ Duplicate final transcript: "${text}"`);
       return false;
     }
 
     // Check minimum time between additions for final results only
     if (now - this.lastProcessedTime < this.MIN_TIME_BETWEEN_ADDITIONS) {
+      console.log(`❌ Too soon for new transcript (${now - this.lastProcessedTime}ms < ${this.MIN_TIME_BETWEEN_ADDITIONS}ms)`);
       return false;
     }
 
@@ -57,7 +63,8 @@ export class TranscriptionManager {
     this.lastProcessedTime = now;
 
     // Add to messages
-    this.addMessage(text, speaker, isFinal);
+    console.log(`✅ Adding final transcript: "${text}"`);
+    this.addMessage(text, speaker, true);
 
     // Clean up old transcripts to prevent memory issues
     this.cleanupOldTranscripts();
@@ -78,10 +85,12 @@ export class TranscriptionManager {
     };
 
     this.messages.push(message);
+    console.log(`📝 TranscriptionManager.addMessage: Added "${text}" (speaker: ${speaker}, final: ${isFinal}, total messages: ${this.messages.length})`);
 
     // Keep only last 100 messages to prevent memory issues
     if (this.messages.length > 100) {
       this.messages = this.messages.slice(-50);
+      console.log(`🧹 TranscriptionManager: Trimmed messages to ${this.messages.length}`);
     }
   }
 
