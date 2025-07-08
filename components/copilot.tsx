@@ -5,7 +5,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import RecorderTranscriber from "@/components/recorder";
 import { useCallback, useEffect, useRef, useState } from "react";
-import dynamic from "next/dynamic";
 
 import { FLAGS, HistoryData } from "@/lib/types";
 import { Switch } from "@/components/ui/switch";
@@ -13,12 +12,6 @@ import { PDFManager } from "@/components/PDFManager";
 import { PDFModal } from "@/components/PDFModal";
 import { transcriptionManager, ChatMessage } from "@/lib/transcriptionManager";
 import { ChatTranscription } from "@/components/ChatTranscription";
-
-// Dynamically import SimpleRecorder to avoid SSR issues
-const SimpleRecorder = dynamic(() => import("@/components/SimpleRecorder"), {
-  ssr: false,
-  loading: () => <div className="text-sm text-gray-500">Loading recorder...</div>
-});
 
 interface CopilotProps {
   addInSavedData: (data: HistoryData) => void;
@@ -59,7 +52,7 @@ function useGeminiCompletion(body: any) {
         // Handle error responses (like 503 for overloaded API)
         if (response.status === 503) {
           const errorData = await response.json();
-          setCompletion("⚠️ Claude API is currently overloaded. Please try again in a moment.");
+          setCompletion("⚠️ AI service is temporarily unavailable. Please try again in a moment.");
           
           if (errorData.extractedQuestion) {
             setExtractedQuestion(errorData.extractedQuestion);
@@ -81,7 +74,7 @@ function useGeminiCompletion(body: any) {
 
       let result = "";
       let buffer = "";
-      let isInCitations = false;
+      let isInSources = false;
       
       while (true) {
         const { done, value } = await reader.read();
@@ -90,42 +83,28 @@ function useGeminiCompletion(body: any) {
         const chunk = decoder.decode(value, { stream: true });
         buffer += chunk;
         
-        // Check for citations separator
-        if (buffer.includes('---CITATIONS---')) {
-          const parts = buffer.split('---CITATIONS---');
-          const beforeCitations = parts[0];
-          const afterCitations = parts[1] || '';
+        // Check for sources separator
+        if (buffer.includes('---SOURCES---')) {
+          const parts = buffer.split('---SOURCES---');
+          const beforeSources = parts[0];
+          const afterSources = parts[1] || '';
           
-          // Process content before citations
-          if (beforeCitations && !isInCitations) {
-            const lines = beforeCitations.split('\n');
-            for (const line of lines) {
-              if (line.trim()) {
-                try {
-                  const parsed = JSON.parse(line);
-                  if (parsed.type === 'question') {
-                    setExtractedQuestion(parsed.question);
-                  }
-                } catch {
-                  // Not JSON, regular response text
-                  if (!line.includes('{') && !line.includes('}') && line.trim()) {
-                    if (!result.includes(line.trim())) {
-                      result += line;
-                      setCompletion(result);
-                    }
-                  }
-                }
-              }
-            }
+          // Process content before sources
+          if (beforeSources && !isInSources) {
+            result += beforeSources;
+            setCompletion(result);
           }
           
-          // Process citations
-          isInCitations = true;
-          if (afterCitations.trim()) {
+          // Process sources
+          isInSources = true;
+          if (afterSources.trim()) {
             try {
-              const parsed = JSON.parse(afterCitations.trim());
+              const parsed = JSON.parse(afterSources.trim());
               if (parsed.type === 'citations') {
                 setCitations(parsed.citations);
+                if (parsed.extractedQuestion) {
+                  setExtractedQuestion(parsed.extractedQuestion);
+                }
               }
             } catch (e) {
               // Continue processing
@@ -135,42 +114,10 @@ function useGeminiCompletion(body: any) {
           continue;
         }
         
-        if (isInCitations) {
-          // We're processing citations, accumulate buffer
-          continue;
-        }
-        
-        // Process complete lines
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || ""; // Keep incomplete line in buffer
-        
-        for (const line of lines) {
-          if (line.trim()) {
-            try {
-              const parsed = JSON.parse(line);
-              if (parsed.type === 'question') {
-                setExtractedQuestion(parsed.question);
-              } else if (parsed.type === 'citations') {
-                setCitations(parsed.citations);
-              }
-            } catch {
-              // Not JSON, treat as regular response text
-              if (!line.includes('{') && !line.includes('}') && line.trim()) {
-                if (!result.includes(line.trim())) {
-                  result += line;
-                  setCompletion(result);
-                }
-              }
-            }
-          }
-        }
-        
-        // Process the current chunk if it's not JSON and not citations
-        if (!chunk.includes('{') && !chunk.includes('}') && !chunk.includes('---CITATIONS---') && chunk.trim()) {
-          if (!result.includes(chunk.trim())) {
-            result += chunk;
-            setCompletion(result);
-          }
+        if (!isInSources) {
+          // Process normal response text
+          result += chunk;
+          setCompletion(result);
         }
       }
     } catch (err) {
@@ -266,43 +213,22 @@ export function Copilot({ addInSavedData }: CopilotProps) {
   // Update chat messages periodically
   useEffect(() => {
     const interval = setInterval(() => {
-      const messages = transcriptionManager.getMessages();
-      console.log('🔄 Periodic chat update - Messages from transcriptionManager:', messages.length);
-      if (messages.length > 0) {
-        console.log('🔄 Latest message:', messages[messages.length - 1]);
-      }
-      setChatMessages([...messages]); // Force new array to trigger re-render
+      setChatMessages(transcriptionManager.getMessages());
     }, 500);
 
     return () => clearInterval(interval);
   }, []);
 
   const addTextinTranscription = (text: string, speaker: 'user' | 'system' | 'external' = 'external') => {
-    console.log('🎯 addTextinTranscription called:', { text, speaker });
-    
-    // Since the WASAPI handler already adds messages to transcriptionManager,
-    // we just need to update the UI state and add to the input field
+    // Use the transcription manager to format and prevent duplicates
     const formattedText = transcriptionManager.formatWithTimestamp(text);
-    console.log('📝 Formatted text for input:', formattedText);
     
-    setInput((prev) => {
-      const newValue = prev + formattedText;
-      console.log('📥 Input updated:', newValue.slice(-100)); // Log last 100 chars
-      return newValue;
-    });
-    
-    setTranscribedText((prev) => {
-      const newValue = prev + formattedText;
-      console.log('📜 Transcribed text updated:', newValue.slice(-100)); // Log last 100 chars
-      return newValue;
-    });
-    
+    setInput((prev) => prev + formattedText);
+    setTranscribedText((prev) => prev + formattedText);
     setLastAddedText(text); // Keep track for additional safety
     
-    // Force update chat messages from transcription manager
-    const messages = transcriptionManager.getMessages();
-    console.log('💬 Forcing chat messages update:', messages.length, 'messages');
-    setChatMessages([...messages]); // Create new array to force re-render
+    // Update chat messages from transcription manager
+    setChatMessages(transcriptionManager.getMessages());
   };
 
   const addSpeakerLabel = (speaker: string) => {
@@ -393,20 +319,8 @@ export function Copilot({ addInSavedData }: CopilotProps) {
       <div className="px-2">
         <div className="grid gap-6 md:grid-cols-2">
         <div className="grid gap-1.5">
-          <SimpleRecorder
+          <RecorderTranscriber
             addTextinTranscription={addTextinTranscription}
-            onTranscriptionUpdate={(message) => {
-              // Handle real-time transcription updates
-              console.log('Real-time transcription:', message);
-              // Also force update chat messages in case the periodic update isn't working
-              const messages = transcriptionManager.getMessages();
-              console.log('🔄 Manual chat update after transcription:', messages.length);
-              setChatMessages([...messages]);
-            }}
-            onStatusChange={(isActive) => {
-              // Handle recording status changes
-              console.log('Recording status:', isActive);
-            }}
           />
           
           {/* PDF Manager */}
@@ -542,7 +456,7 @@ export function Copilot({ addInSavedData }: CopilotProps) {
                 </div>
               </div>
               <p className="text-base text-blue-900 font-medium italic bg-white p-3 border border-blue-200">
-                &ldquo;{extractedQuestion}&rdquo;
+                "{extractedQuestion}"
               </p>
             </div>
           )}

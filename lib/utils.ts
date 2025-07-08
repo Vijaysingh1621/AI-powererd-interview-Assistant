@@ -6,30 +6,47 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function buildPrompt(bg: string | undefined, conversation: string) {
-  return `You are a interview co-pilot. You are assisting in writing responses to the interviewee's answers. You have access to the interview conversation and the background information for the interview. Write a direct response to the interviewee's question, without including any information about yourself. Create Short Response and donot create background and conversation.
---------------------------------
-BACKGROUND: ${bg}
---------------------------------
-CONVERSATION: ${conversation}
---------------------------------
-Response:`;
+  return `You are an expert AI interview assistant helping with technical interview questions. Provide clear, concise, and helpful responses based on your knowledge.
+
+${bg ? `Background Context: ${bg}` : ''}
+
+Recent Interview Conversation:
+${conversation}
+
+Provide a helpful response:`;
+}
+
+export function buildKnowledgeCheckPrompt(conversation: string) {
+  return `You are an AI assistant that needs to determine if you have sufficient knowledge to answer a question.
+
+Conversation: ${conversation}
+
+Analyze this conversation and determine:
+1. Is there a clear question being asked?
+2. Do you have sufficient knowledge to provide a comprehensive answer?
+3. Or would you need external documents/context to give a complete response?
+
+Respond with ONLY one of these formats:
+- "KNOWN: [brief answer preview]" - if you can answer comprehensively
+- "NEED_CONTEXT: [what specific information you need]" - if you need external sources
+
+Examples:
+- For "What is React?" → "KNOWN: React is a JavaScript library..."
+- For "What's my GPA?" → "NEED_CONTEXT: Personal academic information"
+- For "Company policy on remote work?" → "NEED_CONTEXT: Specific company policies"`;
 }
 
 export function buildRAGPrompt(bg: string | undefined, conversation: string, extractedQuestion: string, context: string) {
-  return `IMPORTANT: You must answer using ONLY the exact facts from the document below. Do NOT make up information.
+  return `You are an expert AI interview assistant. Use the provided context along with your knowledge to give the most comprehensive and accurate answer possible.
 
-DOCUMENT FACTS:
+Context Information:
 ${context}
 
-QUESTION: ${extractedQuestion}
+${bg ? `Background: ${bg}` : ''}
 
-Based on the document facts above:
-- If the document mentions "Netaji Subhas University of Technology (2022-2026)", use exactly that university and those dates
-- If the document mentions "Bachelor of Technology in Instrumentation and Control Engineering", use exactly that degree
-- If the document shows someone is currently a student (2022-2026), do NOT say they have years of work experience
-- Quote the document facts directly, do not invent new information
+Question: ${extractedQuestion}
 
-Answer using only the document facts:`;
+Provide a clear, comprehensive response using both the context and your expertise:`;
 }
 
 export function buildSummerizerPrompt(text: string) {

@@ -37,12 +37,26 @@ export default function RecorderTranscriber({
   const [screenVideoStream, setScreenVideoStream] = useState<MediaStream | null>();
   const [isMicEnabled, setIsMicEnabled] = useState(false);
   const [isPreviewMinimized, setIsPreviewMinimized] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const [caption, setCaption] = useState<string | null>();
   const [lastFinalTranscript, setLastFinalTranscript] = useState<string>("");
   const [currentInterimTranscript, setCurrentInterimTranscript] = useState<string>("");
   const [currentAudioSource, setCurrentAudioSource] = useState<'microphone' | 'system' | 'mixed'>('mixed');
+
+  // Effect to handle video stream updates
+  useEffect(() => {
+    if (screenVideoStream && videoRef.current) {
+      console.log("Setting video source:", screenVideoStream);
+      setVideoLoaded(false); // Reset loading state
+      videoRef.current.srcObject = screenVideoStream;
+      videoRef.current.play().catch((error) => {
+        console.error("Video play error in effect:", error);
+        setVideoLoaded(false);
+      });
+    }
+  }, [screenVideoStream]);
 
   const toggleRecorderTranscriber = useCallback(async () => {
     if (microphone && (userMedia || microphoneStream)) {
@@ -71,6 +85,7 @@ export default function RecorderTranscriber({
       if (videoRef.current) {
         videoRef.current.srcObject = null;
       }
+      setVideoLoaded(false);
     } else {
       try {
         // Get screen sharing with both video and audio
@@ -82,95 +97,72 @@ export default function RecorderTranscriber({
           audio: true,
         });
 
+        console.log("Display media tracks:", displayMedia.getTracks());
+        console.log("Video tracks:", displayMedia.getVideoTracks());
+        console.log("Audio tracks:", displayMedia.getAudioTracks());
+
         // Extract video stream for preview
-        const videoStream = new MediaStream(displayMedia.getVideoTracks());
-        setScreenVideoStream(videoStream);
-        
-        // Display video preview
-        if (videoRef.current) {
-          videoRef.current.srcObject = videoStream;
-          videoRef.current.play().catch(console.error);
+        const videoTracks = displayMedia.getVideoTracks();
+        if (videoTracks.length > 0) {
+          const videoStream = new MediaStream(videoTracks);
+          setScreenVideoStream(videoStream);
+          
+          // Display video preview
+          if (videoRef.current) {
+            videoRef.current.srcObject = videoStream;
+            console.log("Video element src set:", videoRef.current.srcObject);
+            videoRef.current.play().catch((error) => {
+              console.error("Video play error:", error);
+            });
+          }
+        } else {
+          console.warn("No video tracks available, trying original stream");
+          // Fallback: use the original display media stream
+          setScreenVideoStream(displayMedia);
+          if (videoRef.current) {
+            videoRef.current.srcObject = displayMedia;
+            videoRef.current.play().catch((error) => {
+              console.error("Fallback video play error:", error);
+            });
+          }
         }
 
-        // Extract audio stream for transcription
+        // Extract audio stream for transcription (interviewer only)
         const audioOnlyStream = new MediaStream(displayMedia.getAudioTracks());
         setSystemAudioStream(audioOnlyStream);
 
-        // Get microphone audio (your voice)
-        let micMedia = null;
-        try {
-          micMedia = await navigator.mediaDevices.getUserMedia({
-            audio: true,
-            video: false,
-          });
-          setMicrophoneStream(micMedia);
-          setIsMicEnabled(true);
-        } catch (micError) {
-          console.warn("Microphone access denied or not available:", micError);
-          setIsMicEnabled(false);
-        }
-
-        // Combine both audio streams for transcription
-        const audioContext = new AudioContext();
-        const destination = audioContext.createMediaStreamDestination();
-        
-        // Track if we have both sources
+        // Use only system audio (interviewer) for transcription
         const hasSystemAudio = audioOnlyStream.getAudioTracks().length > 0;
-        const hasMicAudio = micMedia !== null;
         
-        // Determine audio source type
-        if (hasSystemAudio && hasMicAudio) {
-          setCurrentAudioSource('mixed');
-        } else if (hasSystemAudio) {
-          setCurrentAudioSource('system');
-        } else if (hasMicAudio) {
-          setCurrentAudioSource('microphone');
-        }
-        
-        // Add system audio
         if (hasSystemAudio) {
-          const systemSource = audioContext.createMediaStreamSource(audioOnlyStream);
-          const systemGain = audioContext.createGain();
-          systemGain.gain.value = 0.8; // Slightly reduce system audio to prevent feedback
-          systemSource.connect(systemGain);
-          systemGain.connect(destination);
+          setCurrentAudioSource('system');
+          setUserMedia(audioOnlyStream);
+
+          // Start recording the system audio stream only
+          const mic = new MediaRecorder(audioOnlyStream);
+          mic.start(500);
+
+          mic.onstart = () => {
+            setMicOpen(true);
+          };
+
+          mic.onstop = () => {
+            setMicOpen(false);
+            // Reset transcript state when stopping
+            setLastFinalTranscript("");
+            setCurrentInterimTranscript("");
+            setCaption(null);
+            transcriptionManager.reset(); // Reset the transcription manager
+          };
+
+          mic.ondataavailable = (e) => {
+            add(e.data);
+          };
+
+          setRecorderTranscriber(mic);
+        } else {
+          alert("No system audio detected. Please ensure your screen sharing includes audio.");
         }
-
-        // Add microphone audio if available
-        if (micMedia) {
-          const micSource = audioContext.createMediaStreamSource(micMedia);
-          const micGain = audioContext.createGain();
-          micGain.gain.value = 1.0; // Full volume for microphone
-          micSource.connect(micGain);
-          micGain.connect(destination);
-        }
-
-        const combinedStream = destination.stream;
-        setUserMedia(combinedStream);
-
-        // Start recording the combined audio stream
-        const mic = new MediaRecorder(combinedStream);
-        mic.start(500);
-
-        mic.onstart = () => {
-          setMicOpen(true);
-        };
-
-        mic.onstop = () => {
-          setMicOpen(false);
-          audioContext.close();
-          // Reset transcript state when stopping
-          setLastFinalTranscript("");
-          setCurrentInterimTranscript("");
-          setCaption(null);
-          transcriptionManager.reset(); // Reset the transcription manager
-        };
-
-        mic.ondataavailable = (e) => {
-          add(e.data);
-        };
-
-        setRecorderTranscriber(mic);
       } catch (error) {
         console.error("Error accessing media devices:", error);
         alert("Please grant permission to access your microphone and screen audio.");
@@ -234,18 +226,18 @@ export default function RecorderTranscriber({
           // Always update the display caption for user feedback
           setCaption(caption);
           
-          // Determine speaker based on audio source and content analysis
-          const detectedSpeaker = transcriptionManager.detectSpeaker(currentAudioSource, caption);
+          // Always mark as 'external' (interviewer) since we're only capturing system audio
+          const detectedSpeaker = 'external';
           
           // Only add final transcripts to prevent duplicates
           if (isFinal && transcriptionManager.shouldAddTranscript(caption, isFinal, detectedSpeaker)) {
-            console.log("Adding final transcript:", caption, "Speaker:", detectedSpeaker);
+            console.log("Adding final transcript (Interviewer):", caption);
             addTextinTranscription(caption, detectedSpeaker);
             setLastFinalTranscript(caption);
           } else if (!isFinal) {
             // Update interim display
             setCurrentInterimTranscript(caption);
-            console.log("Interim transcript:", caption);
+            console.log("Interim transcript (Interviewer):", caption);
           }
         }
       });
@@ -253,7 +245,7 @@ export default function RecorderTranscriber({
       setConnection(connection);
       setLoading(false);
     }
-  }, [apiKey, addTextinTranscription, currentAudioSource]);
+  }, [apiKey]);
 
   useEffect(() => {
     const processQueue = async () => {
@@ -312,25 +304,25 @@ export default function RecorderTranscriber({
         </Button>
         {micOpen && (
           <div className="text-xs text-gray-600 mt-1">
-            {isMicEnabled ? "✓ Me + Interviewer" : "⚠ Interviewer only (mic access denied)"}
+            🎙️ Interviewer audio transcription active
           </div>
         )}
         
         {/* Screen Sharing Preview */}
         {screenVideoStream && (
-          <div className="mt-4 p-4 border border-gray-300 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 shadow-sm">
+          <div className="mt-4 p-4 border border-gray-300 bg-gray-50 shadow-sm">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                 Screen Share Preview
               </h3>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-green-700 bg-green-100 px-3 py-1 rounded-full font-medium border border-green-200">
+                <span className="text-xs text-green-700 bg-green-100 px-3 py-1 font-medium border border-green-200">
                   ● Live
                 </span>
                 <button
                   onClick={() => setIsPreviewMinimized(!isPreviewMinimized)}
-                  className="text-xs text-gray-600 hover:text-gray-800 px-3 py-1 rounded-md border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
+                  className="text-xs text-gray-600 hover:text-gray-800 px-3 py-1 border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
                 >
                   {isPreviewMinimized ? "Show" : "Hide"}
                 </button>
@@ -338,15 +330,36 @@ export default function RecorderTranscriber({
             </div>
             {!isPreviewMinimized && (
               <>
-                <video
-                  ref={videoRef}
-                  className="w-full h-40 bg-black rounded-lg border-2 border-gray-200 object-contain shadow-inner"
-                  muted
-                  playsInline
-                  autoPlay
-                />
-                <p className="text-xs text-gray-600 mt-3 text-center bg-white px-3 py-2 rounded-md border">
-                  📺 Capturing screen content and audio for AI analysis
+                <div className="relative">
+                  <video
+                    ref={videoRef}
+                    className="w-full h-64 bg-black border-2 border-gray-200 object-contain shadow-inner"
+                    muted
+                    playsInline
+                    autoPlay
+                    controls={false}
+                    onLoadedMetadata={() => {
+                      console.log("Video metadata loaded");
+                      setVideoLoaded(true);
+                    }}
+                    onError={(e) => {
+                      console.error("Video error:", e);
+                      setVideoLoaded(false);
+                    }}
+                    onCanPlay={() => console.log("Video can play")}
+                  />
+                  {!videoLoaded && screenVideoStream && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 text-white border-2 border-gray-200">
+                      <div className="text-center">
+                        <div className="animate-spin text-2xl mb-2">⏳</div>
+                        <p className="text-sm">Loading screen preview...</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-gray-600 mt-3 text-center bg-white px-3 py-2 border">
+                  📺 Capturing interviewer screen and audio for AI analysis
+                  {videoLoaded && <span className="text-green-600 ml-2">✓ Video loaded</span>}
                 </p>
               </>
             )}
@@ -354,7 +367,7 @@ export default function RecorderTranscriber({
               <div className="text-center py-6">
                 <div className="text-2xl mb-2">📱</div>
                 <p className="text-xs text-gray-600">
-                  Preview minimized - Click &ldquo;Show&rdquo; to display screen sharing
+                  Preview minimized - Click "Show" to display screen sharing
                 </p>
               </div>
             )}
@@ -364,15 +377,15 @@ export default function RecorderTranscriber({
       <div
         className="z-20 text-white flex shrink-0 grow-0 justify-around items-center 
                   fixed bottom-0 right-5 rounded-xl mr-1 mb-5 lg:mr-5 lg:mb-5 xl:mr-10 xl:mb-10 gap-3 
-                  bg-gradient-to-r from-gray-800 to-gray-900 px-4 py-2 shadow-lg border border-gray-700"
+                  bg-gray-800 px-4 py-2 shadow-lg border border-gray-700"
       >
         <span className={cn("text-sm font-medium", {
           "text-green-400": isListening,
           "text-gray-400": !isListening
         })}>
           {isListening
-            ? "🟢 Connected to AI"
-            : "🟡 Connecting..."}
+            ? "🎙️ Interviewer Connected"
+            : "⏳ Connecting..."}
         </span>
         <MicIcon
           className={cn("h-4 w-4 transition-all duration-300", {

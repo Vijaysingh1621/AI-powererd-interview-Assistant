@@ -117,7 +117,7 @@ export function PDFModal({ isOpen, onClose, filename, page, citation }: PDFModal
                   <div className="text-sm text-gray-800 leading-relaxed mb-4">
                     <span className="text-gray-600 text-xs uppercase tracking-wider font-medium block mb-2">EXTRACTED CONTENT:</span>
                     <div className="bg-white p-4 rounded border italic text-gray-900 leading-loose">
-                      &ldquo;{citation.contextSnippet || citation.content}&rdquo;
+                      "{citation.contextSnippet || citation.content}"
                     </div>
                   </div>
                   

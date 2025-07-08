@@ -36,6 +36,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.0.1",
+    "groq-sdk": "^0.26.0",
     "jimp": "^1.6.0",
     "langchain": "^0.3.29",
     "lucide-react": "^0.341.0",
