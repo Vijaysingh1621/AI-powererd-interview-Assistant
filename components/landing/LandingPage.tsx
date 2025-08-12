@@ -630,7 +630,7 @@ export function LandingPage() {
                   ))}
                 </div>
                 <p className="text-gray-600 mb-6">
-                  "InterviewAI has completely transformed our technical hiring process. The real-time insights and AI-powered suggestions have helped us identify top talent 3x faster."
+                  &ldquo;InterviewAI has completely transformed our technical hiring process. The real-time insights and AI-powered suggestions have helped us identify top talent 3x faster.&rdquo;
                 </p>
                 <div className="flex items-center">
                   <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mr-4">
@@ -652,7 +652,7 @@ export function LandingPage() {
                   ))}
                 </div>
                 <p className="text-gray-600 mb-6">
-                  "The RAG technology is incredible. It pulls relevant information from our company docs and provides context-aware responses that feel natural and helpful."
+                  &ldquo;The RAG technology is incredible. It pulls relevant information from our company docs and provides context-aware responses that feel natural and helpful.&rdquo;
                 </p>
                 <div className="flex items-center">
                   <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-teal-500 rounded-full flex items-center justify-center mr-4">
@@ -674,7 +674,7 @@ export function LandingPage() {
                   ))}
                 </div>
                 <p className="text-gray-600 mb-6">
-                  "As a technical recruiter, this tool has been a game-changer. The analytics help me understand candidate performance and improve our interview process continuously."
+                  &ldquo;As a technical recruiter, this tool has been a game-changer. The analytics help me understand candidate performance and improve our interview process continuously.&rdquo;
                 </p>
                 <div className="flex items-center">
                   <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-4">
