@@ -25,7 +25,7 @@ export async function GET(request: Request) {
 
   let { result: newKeyResult, error: newKeyError } =
     await deepgram.manage.createProjectKey(project.project_id, {
-      comment: "Temporary API key",
+      comment: "Loading...",
       scopes: ["usage:write"],
       tags: ["next.js"],
       time_to_live_in_seconds: 10,

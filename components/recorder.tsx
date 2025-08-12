@@ -245,7 +245,7 @@ export default function RecorderTranscriber({
       setConnection(connection);
       setLoading(false);
     }
-  }, [apiKey]);
+  }, [apiKey, addTextinTranscription]);
 
   useEffect(() => {
     const processQueue = async () => {
@@ -358,7 +358,7 @@ export default function RecorderTranscriber({
                   )}
                 </div>
                 <p className="text-xs text-gray-600 mt-3 text-center bg-white px-3 py-2 border">
-                  📺 Capturing interviewer screen and audio for AI analysis
+                   Capturing interviewer screen and audio for AI analysis
                   {videoLoaded && <span className="text-green-600 ml-2">✓ Video loaded</span>}
                 </p>
               </>
@@ -367,7 +367,7 @@ export default function RecorderTranscriber({
               <div className="text-center py-6">
                 <div className="text-2xl mb-2">📱</div>
                 <p className="text-xs text-gray-600">
-                  Preview minimized - Click "Show" to display screen sharing
+                  Preview minimized - Click &ldquo;Show&rdquo; to display screen sharing
                 </p>
               </div>
             )}

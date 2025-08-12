@@ -1,5 +1,5 @@
 "use client";
-
+import ReactMarkdown from "react-markdown";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -151,6 +151,7 @@ export function Copilot({ addInSavedData }: CopilotProps) {
   const [lastAddedText, setLastAddedText] = useState<string>("");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [showChatView, setShowChatView] = useState<boolean>(true);
+  const [stealthMode, setStealthMode] = useState<boolean>(false); // Stealth mode state
   const [pdfModal, setPdfModal] = useState<{
     isOpen: boolean, 
     filename: string, 
@@ -291,327 +292,387 @@ export function Copilot({ addInSavedData }: CopilotProps) {
     });
   };
 
+  // Keyboard shortcut: Ctrl+Shift+C to toggle stealth mode
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.code === 'KeyC') {
+        setStealthMode((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Stealth mode UI: show only a small floating button to restore
+  if (stealthMode) {
+    return (
+      <button
+        style={{
+          position: 'fixed',
+          bottom: 24,
+          right: 24,
+          zIndex: 9999,
+          background: '#222',
+          color: '#fff',
+          borderRadius: '50%',
+          width: 48,
+          height: 48,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+          border: 'none',
+          cursor: 'pointer',
+        }}
+        title="Show Copilot (Ctrl+Shift+C)"
+        onClick={() => setStealthMode(false)}
+      >
+        🕵️
+      </button>
+    );
+  }
+
+  // Add a toggle button for stealth mode in the main UI (for interviewer only)
   return (
-    <div className="space-y-6">
-      {/* Header Section */}
-      <div className="px-2 py-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white text-lg">🤖</span>
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-800 font-poppins">
-                AI Interview Assistant
-              </h2>
-              <p className="text-sm text-gray-600">Real-time interview support with RAG technology</p>
-            </div>
-          </div>
-          {error && (
-            <div className="bg-red-100 px-3 py-2">
-              <p className="text-red-700 text-sm font-medium">⚠️ {error.message}</p>
-            </div>
-          )}
-        </div>
-      </div>
+    <div style={{ position: 'relative' }}>
+      <button
+        style={{
+          position: 'absolute',
+          top: 12,
+          right: 12,
+          zIndex: 1000,
+          background: stealthMode ? '#222' : '#eee',
+          color: stealthMode ? '#fff' : '#222',
+          border: '1px solid #ccc',
+          borderRadius: 8,
+          padding: '4px 12px',
+          fontSize: 14,
+          cursor: 'pointer',
+        }}
+        onClick={() => setStealthMode((prev) => !prev)}
+        title="Toggle Stealth Mode (Ctrl+Shift+C)"
+      >
+        {stealthMode ? 'Exit Stealth' : 'Stealth Mode'}
+      </button>
 
-      {/* Main Content */}
-      <div className="px-2">
-        <div className="grid gap-6 md:grid-cols-2">
-        <div className="grid gap-1.5">
-          <RecorderTranscriber
-            addTextinTranscription={addTextinTranscription}
-          />
-          
-          {/* PDF Manager */}
-          <div className="mt-4">
-            <PDFManager />
-          </div>
-        </div>
-
-        <div className="grid gap-1.5 my-2">
+      <div className="space-y-6">
+        {/* Header Section */}
+        <div className="px-2 py-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="transcription" className="text-green-800">
-              Transcription
-            </Label>
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="text-xs h-7"
-                onClick={() => setShowChatView(!showChatView)}
-              >
-                {showChatView ? "📝 Text View" : "💬 Chat View"}
-              </Button>
-              <button
-                type="button"
-                className="text-xs text-red-500 hover:text-red-800 underline"
-                onClick={clearTranscriptionChange}
-              >
-                clear
-              </button>
-            </div>
-          </div>
-          
-          {showChatView ? (
-            <div className="h-[300px]">
-              <ChatTranscription 
-                messages={chatMessages}
-                onClear={clearTranscriptionChange}
-                className="h-full"
-              />
-            </div>
-          ) : (
-            <>
-              <Textarea
-                id="transcription"
-                className="h-[200px] min-h-[200px] mt-2"
-                placeholder="Your transcribed text will appear here. Use the buttons below to mark who is speaking."
-                value={transcribedText}
-                onChange={handleTranscriptionChange}
-              />
-              <div className="flex gap-2 mt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="text-xs h-7 bg-blue-50 hover:bg-blue-100 text-blue-700"
-                  onClick={() => addSpeakerLabel("INTERVIEWER")}
-                >
-                  Mark as Interviewer
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="text-xs h-7 bg-green-50 hover:bg-green-100 text-green-700"
-                  onClick={() => addSpeakerLabel("ME")}
-                >
-                  Mark as Me
-                </Button>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-        {/* Control Section */}
-        <div className="px-2 py-4">
-          <form
-            ref={formRef}
-            onSubmit={handleSubmit}
-            className="flex items-center justify-center gap-4"
-          >
-            <div className="flex items-center justify-center px-4 py-2">
-              <Label className="text-gray-700 font-medium text-sm">
-                Summarizer
-                <span className="text-xs text-gray-500 ml-1">(Ctrl + S)</span>
-              </Label>
-              <Switch
-                className="data-[state=checked]:bg-indigo-600 data-[state=unchecked]:bg-gray-300 mx-3"
-                onCheckedChange={handleFlag}
-                defaultChecked
-                checked={flag === FLAGS.COPILOT}
-              />
-              <Label className="text-gray-700 font-medium text-sm">
-                AI Mode
-                <span className="text-xs text-gray-500 ml-1">(Ctrl + C)</span>
-              </Label>
-            </div>
-
-            <Button
-              className="h-10 px-8 bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors"
-              size="sm"
-              variant="outline"
-              disabled={isLoading}
-              type="submit"
-            >
-              {isLoading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Generating...</span>
-                </div>
-              ) : (
-                <div className="flex items-center justify-center">
-                  <span>Process</span>
-                  <span className="text-xs text-blue-200 ml-2">(Ctrl + Enter)</span>
-                </div>
-              )}
-            </Button>
-          </form>
-        </div>
-
-        {/* Results Section */}
-        <div className="px-2 pb-6">
-          {/* Extracted Question Display */}
-          {extractedQuestion && (
-            <div className="mb-6 p-4 bg-blue-50 border border-blue-200">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 bg-blue-500">
-                  <span className="text-white text-lg">❓</span>
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-blue-800">Question Detected</h3>
-                  <p className="text-xs text-blue-600">AI extracted this question from your conversation</p>
-                </div>
-              </div>
-              <p className="text-base text-blue-900 font-medium italic bg-white p-3 border border-blue-200">
-                "{extractedQuestion}"
-              </p>
-            </div>
-          )}
-
-          {/* AI Response */}
-          {completion && (
-            <>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 bg-green-500 flex items-center justify-center">
-                    <span className="text-white text-xs">✓</span>
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-800">AI Response</h3>
-                  {flag === FLAGS.COPILOT && (
-                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1">
-                      🤖 RAG-powered
-                    </span>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  className="text-sm text-indigo-600 hover:text-indigo-800 font-medium underline"
-                  onClick={handleSave}
-                >
-                  Save Response
-                </button>
-              </div>
-              <div className="bg-gray-50 p-6 border border-gray-200">
-                <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">{completion}</div>
-              </div>
-            </>
-          )}
-
-        {/* Citations with Enhanced Context Information */}
-        {citations && citations.length > 0 && (
-          <div className="mt-4 p-4 bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-lg shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-yellow-100 rounded-full">
-                <span className="text-lg">📚</span>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <span className="text-white text-lg">🤖</span>
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-yellow-800">Sources & Citations</h4>
-                <p className="text-xs text-yellow-600">Found {citations.length} relevant source{citations.length > 1 ? 's' : ''}</p>
+                <h2 className="text-xl font-bold text-gray-800 font-poppins">
+                  AI Interview Assistant
+                </h2>
+                <p className="text-sm text-gray-600">Real-time interview support with RAG technology</p>
+              </div>
+            </div>
+            {error && (
+              <div className="bg-red-100 px-3 py-2">
+                <p className="text-red-700 text-sm font-medium">⚠️ {error.message}</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="px-2">
+          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-1.5">
+            <RecorderTranscriber
+              addTextinTranscription={addTextinTranscription}
+            />
+            
+            {/* PDF Manager */}
+            <div className="mt-4">
+              <PDFManager />
+            </div>
+          </div>
+
+          <div className="grid gap-1.5 my-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="transcription" className="text-green-800">
+                Transcription
+              </Label>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="text-xs h-7"
+                  onClick={() => setShowChatView(!showChatView)}
+                >
+                  {showChatView ? "📝 Text View" : "💬 Chat View"}
+                </Button>
+                <button
+                  type="button"
+                  className="text-xs text-red-500 hover:text-red-800 underline"
+                  onClick={clearTranscriptionChange}
+                >
+                  clear
+                </button>
               </div>
             </div>
             
-            <div className="space-y-4">
-              {citations.map((citation, index) => (
-                <div key={index} className="bg-white p-4 rounded-lg border border-yellow-100 shadow-sm">
-                  <div className="flex items-start gap-3">
-                    <div className="bg-yellow-100 text-yellow-800 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0">
-                      {index + 1}
+            {showChatView ? (
+              <div className="h-[300px]">
+                <ChatTranscription 
+                  messages={chatMessages}
+                  onClear={clearTranscriptionChange}
+                  className="h-full"
+                />
+              </div>
+            ) : (
+              <>
+                <Textarea
+                  id="transcription"
+                  className="h-[200px] min-h-[200px] mt-2"
+                  placeholder="Your transcribed text will appear here. Use the buttons below to mark who is speaking."
+                  value={transcribedText}
+                  onChange={handleTranscriptionChange}
+                />
+                <div className="flex gap-2 mt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="text-xs h-7 bg-blue-50 hover:bg-blue-100 text-blue-700"
+                    onClick={() => addSpeakerLabel("INTERVIEWER")}
+                  >
+                    Mark as Interviewer
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="text-xs h-7 bg-green-50 hover:bg-green-100 text-green-700"
+                    onClick={() => addSpeakerLabel("ME")}
+                  >
+                    Mark as Me
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+          {/* Control Section */}
+          <div className="px-2 py-4">
+            <form
+              ref={formRef}
+              onSubmit={handleSubmit}
+              className="flex items-center justify-center gap-4"
+            >
+              <div className="flex items-center justify-center px-4 py-2">
+                <Label className="text-gray-700 font-medium text-sm">
+                  Summarizer
+                  <span className="text-xs text-gray-500 ml-1">(Ctrl + S)</span>
+                </Label>
+                <Switch
+                  className="data-[state=checked]:bg-indigo-600 data-[state=unchecked]:bg-gray-300 mx-3"
+                  onCheckedChange={handleFlag}
+                  defaultChecked
+                  checked={flag === FLAGS.COPILOT}
+                />
+                <Label className="text-gray-700 font-medium text-sm">
+                  AI Mode
+                  <span className="text-xs text-gray-500 ml-1">(Ctrl + C)</span>
+                </Label>
+              </div>
+
+              <Button
+                className="h-10 px-8 bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors"
+                size="sm"
+                variant="outline"
+                disabled={isLoading}
+                type="submit"
+              >
+                {isLoading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Generating...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center">
+                    <span>Process</span>
+                    <span className="text-xs text-blue-200 ml-2">(Ctrl + Enter)</span>
+                  </div>
+                )}
+              </Button>
+            </form>
+          </div>
+
+          {/* Results Section */}
+          <div className="px-2 pb-6">
+            {/* Extracted Question Display */}
+            {extractedQuestion && (
+              <div className="mb-6 p-4 bg-blue-50 border border-blue-200">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 bg-blue-500">
+                    <span className="text-white text-lg">❓</span>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-blue-800">Question Detected</h3>
+                    <p className="text-xs text-blue-600">AI extracted this question from your conversation</p>
+                  </div>
+                </div>
+                <p className="text-base text-blue-900 font-medium italic bg-white p-3 border border-blue-200">
+                  &ldquo;{extractedQuestion}&rdquo;
+                </p>
+              </div>
+            )}
+
+            {/* AI Response */}
+            {completion && (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-green-500 flex items-center justify-center">
+                      <span className="text-white text-xs">✓</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      {/* Source Header */}
-                      <div className="flex items-center gap-2 mb-2 flex-wrap">
-                        <div className="flex items-center gap-2">
-                          {citation.sourceType === 'pdf' ? (
-                            <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
-                              📄 PDF
+                    <h3 className="text-lg font-semibold text-gray-800">AI Response</h3>
+                    {flag === FLAGS.COPILOT && (
+                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1">
+                        🤖 RAG-powered
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    className="text-sm text-indigo-600 hover:text-indigo-800 font-medium underline"
+                    onClick={handleSave}
+                  >
+                    Save Response
+                  </button>
+                </div>
+                <div className="bg-gray-50 p-6 border border-gray-200">
+                  <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">{completion}</div>
+                </div>
+              </>
+            )}
+
+          {/* Citations with Enhanced Context Information */}
+          {citations && citations.length > 0 && (
+            <div className="mt-4 p-4 bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-lg shadow-sm">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-yellow-100 rounded-full">
+                  <span className="text-lg">📚</span>
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-yellow-800">Sources & Citations</h4>
+                  <p className="text-xs text-yellow-600">Found {citations.length} relevant source{citations.length > 1 ? 's' : ''}</p>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                {citations.map((citation, index) => (
+                  <div key={index} className="bg-white p-4 rounded-lg border border-yellow-100 shadow-sm">
+                    <div className="flex items-start gap-3">
+                      <div className="bg-yellow-100 text-yellow-800 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        {/* Source Header */}
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                          <div className="flex items-center gap-2">
+                            {citation.sourceType === 'pdf' ? (
+                              <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                                📄 PDF
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                                🌐 Web
+                              </span>
+                            )}
+                            
+                            <span className="font-medium text-gray-800 text-sm truncate">
+                              {citation.filename || citation.source}
                             </span>
-                          ) : (
-                            <span className="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
-                              🌐 Web
+                          </div>
+                          
+                          {/* Page Information for PDFs */}
+                          {citation.sourceType === 'pdf' && citation.pageRange && (
+                            <span className="inline-flex items-center px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">
+                              📖 {citation.pageRange}
                             </span>
                           )}
                           
-                          <span className="font-medium text-gray-800 text-sm truncate">
-                            {citation.filename || citation.source}
+                          {/* Relevance Score */}
+                          <span className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">
+                            {Math.round(citation.score * 100)}% relevant
                           </span>
                         </div>
                         
-                        {/* Page Information for PDFs */}
-                        {citation.sourceType === 'pdf' && citation.pageRange && (
-                          <span className="inline-flex items-center px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">
-                            📖 {citation.pageRange}
-                          </span>
-                        )}
+                        {/* Content Preview */}
+                        <div className="mb-3">
+                          <p className="text-sm text-gray-700 leading-relaxed">
+                            {citation.contextSnippet || citation.content.substring(0, 200)}
+                            {(citation.content.length > 200 && !citation.contextSnippet) ? "..." : ""}
+                          </p>
+                        </div>
                         
-                        {/* Relevance Score */}
-                        <span className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">
-                          {Math.round(citation.score * 100)}% relevant
-                        </span>
-                      </div>
-                      
-                      {/* Content Preview */}
-                      <div className="mb-3">
-                        <p className="text-sm text-gray-700 leading-relaxed">
-                          {citation.contextSnippet || citation.content.substring(0, 200)}
-                          {(citation.content.length > 200 && !citation.contextSnippet) ? "..." : ""}
-                        </p>
-                      </div>
-                      
-                      {/* Action Buttons */}
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {citation.url && citation.sourceType === 'web' && (
-                          <a 
-                            href={citation.url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-medium rounded-md border border-blue-200 transition-colors"
-                          >
-                            🔗 View Source
-                          </a>
-                        )}
-                        
-                        {citation.sourceType === 'pdf' && citation.filename && citation.page && (
-                          <button
-                            onClick={() => openPDFModal(citation.filename, citation.page, citation)}
-                            className="inline-flex items-center gap-1 px-3 py-1 bg-purple-50 text-purple-700 hover:bg-purple-100 text-xs font-medium rounded-md border border-purple-200 transition-colors"
-                          >
-                            📖 Open Page {citation.page}
-                          </button>
-                        )}
-                        
-                        {/* Show additional pages if it's a range */}
-                        {citation.sourceType === 'pdf' && citation.startPage && citation.endPage && citation.startPage !== citation.endPage && (
-                          <span className="text-xs text-gray-500">
-                            Content spans {citation.endPage - citation.startPage + 1} page{citation.endPage - citation.startPage > 0 ? 's' : ''}
-                          </span>
-                        )}
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {citation.url && citation.sourceType === 'web' && (
+                            <a 
+                              href={citation.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-medium rounded-md border border-blue-200 transition-colors"
+                            >
+                              🔗 View Source
+                            </a>
+                          )}
+                          
+                          {citation.sourceType === 'pdf' && citation.filename && citation.page && (
+                            <button
+                              onClick={() => openPDFModal(citation.filename, citation.page, citation)}
+                              className="inline-flex items-center gap-1 px-3 py-1 bg-purple-50 text-purple-700 hover:bg-purple-100 text-xs font-medium rounded-md border border-purple-200 transition-colors"
+                            >
+                              📖 Open Page {citation.page}
+                            </button>
+                          )}
+                          
+                          {/* Show additional pages if it's a range */}
+                          {citation.sourceType === 'pdf' && citation.startPage && citation.endPage && citation.startPage !== citation.endPage && (
+                            <span className="text-xs text-gray-500">
+                              Content spans {citation.endPage - citation.startPage + 1} page{citation.endPage - citation.startPage > 0 ? 's' : ''}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
+                ))}
+              </div>
+              
+              {/* Summary Footer */}
+              <div className="mt-4 pt-3 border-t border-yellow-200">
+                <div className="text-xs text-yellow-700 flex items-center gap-4">
+                  <span>
+                    📄 PDF Sources: {citations.filter(c => c.sourceType === 'pdf').length}
+                  </span>
+                  <span>
+                    🌐 Web Sources: {citations.filter(c => c.sourceType === 'web').length}
+                  </span>
+                  <span>
+                    📊 Avg. Relevance: {Math.round(citations.reduce((sum, c) => sum + c.score, 0) / citations.length * 100)}%
+                  </span>
                 </div>
-              ))}
-            </div>
-            
-            {/* Summary Footer */}
-            <div className="mt-4 pt-3 border-t border-yellow-200">
-              <div className="text-xs text-yellow-700 flex items-center gap-4">
-                <span>
-                  📄 PDF Sources: {citations.filter(c => c.sourceType === 'pdf').length}
-                </span>
-                <span>
-                  🌐 Web Sources: {citations.filter(c => c.sourceType === 'web').length}
-                </span>
-                <span>
-                  📊 Avg. Relevance: {Math.round(citations.reduce((sum, c) => sum + c.score, 0) / citations.length * 100)}%
-                </span>
               </div>
             </div>
-          </div>
-        )}
-      </div>
-      </div>
+          )}
+        </div>
+        </div>
 
-      {/* PDF Modal */}
-      <PDFModal
-        isOpen={pdfModal.isOpen}
-        onClose={closePDFModal}
-        filename={pdfModal.filename}
-        page={pdfModal.page}
-        citation={pdfModal.citation}
-      />
+        {/* PDF Modal */}
+        <PDFModal
+          isOpen={pdfModal.isOpen}
+          onClose={closePDFModal}
+          filename={pdfModal.filename}
+          page={pdfModal.page}
+          citation={pdfModal.citation}
+        />
+      </div>
     </div>
   );
 }
