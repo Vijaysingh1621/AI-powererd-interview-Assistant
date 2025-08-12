@@ -245,7 +245,7 @@ export default function RecorderTranscriber({
       setConnection(connection);
       setLoading(false);
     }
-  }, [apiKey, addTextinTranscription]);
+  }, [apiKey]);
 
   useEffect(() => {
     const processQueue = async () => {
