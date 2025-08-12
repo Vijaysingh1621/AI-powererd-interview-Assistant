@@ -12,8 +12,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "AI Interview Assistant",
-  description: "Real-time AI-powered interview assistance with RAG technology",
+  title: "InterviewAI - AI-Powered Interview Assistant",
+  description: "Transform your technical interviews with real-time AI assistance, intelligent transcription, and context-aware responses powered by cutting-edge LLMs and RAG technology.",
 };
 
 export default function RootLayout({
