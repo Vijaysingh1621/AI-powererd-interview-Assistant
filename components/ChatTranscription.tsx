@@ -1,160 +1,157 @@
-"use client";
+"use client"
 
-import { useState, useEffect, useRef } from "react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { User, Monitor, MessageCircle } from "lucide-react";
+import { useRef, useEffect } from "react"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { User, Monitor, MessageCircle, Trash2 } from "lucide-react"
 
 export interface ChatMessage {
-  id: string;
-  text: string;
-  timestamp: string;
-  speaker: 'user' | 'system' | 'external';
-  isInterim?: boolean;
+  id: string
+  text: string
+  timestamp: string
+  speaker: "user" | "system" | "external"
+  isInterim?: boolean
 }
 
 interface ChatTranscriptionProps {
-  messages: ChatMessage[];
-  onClear: () => void;
-  className?: string;
+  messages: ChatMessage[]
+  onClear: () => void
+  className?: string
+  autoScroll?: boolean
 }
 
-export function ChatTranscription({ messages, onClear, className }: ChatTranscriptionProps) {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+export function ChatTranscription({ messages, onClear, className, autoScroll = true }: ChatTranscriptionProps) {
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (autoScroll && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
+    }
+  }, [messages, autoScroll])
+
+  // Also scroll when container is resized (useful for layout changes)
+  useEffect(() => {
+    if (autoScroll && messagesEndRef.current) {
+      const timeoutId = setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+      }, 100)
+      return () => clearTimeout(timeoutId)
+    }
+  }, [autoScroll])
 
   const formatTime = (timestamp: string) => {
     try {
-      return new Date(timestamp).toLocaleTimeString([], { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        second: '2-digit'
-      });
+      return new Date(timestamp).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      })
     } catch {
-      return timestamp;
+      return timestamp
     }
-  };
+  }
 
   const getSpeakerInfo = (speaker: string) => {
     switch (speaker) {
-      case 'user':
-      case 'external':
+      case "user":
+      case "external":
         return {
-          name: 'Interviewer',
+          name: "Interviewer",
           icon: User,
-          bgColor: 'bg-blue-500',
-          textColor: 'text-blue-600',
-          alignment: 'justify-start'
-        };
-      case 'system':
+          bgColor: "bg-blue-500",
+          textColor: "text-blue-600 dark:text-blue-400",
+          messageBg: "bg-blue-50 dark:bg-blue-950/30",
+          alignment: "justify-start",
+        }
+      case "system":
         return {
-          name: 'Me',
+          name: "Me",
           icon: Monitor,
-          bgColor: 'bg-green-500',
-          textColor: 'text-green-600',
-          alignment: 'justify-end'
-        };
+          bgColor: "bg-green-500",
+          textColor: "text-green-600 dark:text-green-400",
+          messageBg: "bg-green-50 dark:bg-green-950/30",
+          alignment: "justify-end",
+        }
       default:
         return {
-          name: 'Unknown',
+          name: "Unknown",
           icon: MessageCircle,
-          bgColor: 'bg-gray-500',
-          textColor: 'text-gray-600',
-          alignment: 'justify-start'
-        };
+          bgColor: "bg-gray-500",
+          textColor: "text-gray-600 dark:text-gray-400",
+          messageBg: "bg-gray-50 dark:bg-gray-950/30",
+          alignment: "justify-start",
+        }
     }
-  };
+  }
 
   return (
-    <div className={cn("flex flex-col h-full", className)}>
+    <div className={cn("flex flex-col h-full bg-background", className)}>
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b bg-gray-50">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-          <h3 className="font-medium text-gray-700">Live Transcription</h3>
-          <span className="text-xs text-gray-500">({messages.length} messages)</span>
+      <div className="flex items-center justify-between p-3 border-b bg-muted/30">
+        <div className="flex items-center gap-3">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <h3 className="font-medium text-sm">Live Transcription</h3>
+          <Badge variant="secondary" className="text-xs">
+            {messages.length}
+          </Badge>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            onClick={onClear}
-            variant="outline"
-            size="sm"
-            className="text-xs"
-          >
-            Clear Chat
-          </Button>
-        </div>
-      </div>
-
-      {/* Legend */}
-      <div className="px-3 py-2 bg-gray-50 border-b text-xs text-gray-600">
-        <div className="flex items-center justify-center">
-          <div className="flex items-center gap-1">
-            <User className="w-3 h-3 text-blue-600" />
-            <span>Interviewer</span>
-          </div>
-        </div>
+        <Button variant="ghost" size="sm" onClick={onClear} className="h-7 text-xs">
+          <Trash2 className="size-3 mr-1" />
+          Clear
+        </Button>
       </div>
 
       {/* Messages */}
-      <div 
-        className="flex-1 overflow-y-auto p-3 space-y-3"
-      >
+      <div ref={containerRef} className="flex-1 overflow-y-auto p-3 space-y-3 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
         {messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-gray-500">
+          <div className="flex items-center justify-center h-full text-muted-foreground">
             <div className="text-center">
               <div className="text-2xl mb-2">🎙️</div>
-              <p className="text-sm">Start listening to see transcription...</p>
-              <p className="text-xs mt-1">Interviewer audio will appear here</p>
+              <p className="text-sm font-medium mb-1">Waiting for audio...</p>
+              <p className="text-xs">Transcription will appear here</p>
             </div>
           </div>
         ) : (
           messages.map((message) => {
-            const speakerInfo = getSpeakerInfo(message.speaker);
-            const IconComponent = speakerInfo.icon;
+            const speakerInfo = getSpeakerInfo(message.speaker)
+            const IconComponent = speakerInfo.icon
 
             return (
-              <div
-                key={message.id}
-                className={cn("flex", speakerInfo.alignment)}
-              >
+              <div key={message.id} className={cn("flex", speakerInfo.alignment)}>
                 <div
                   className={cn(
-                    "max-w-[85%] rounded-lg px-3 py-2 shadow-sm",
-                    message.speaker === 'system' 
-                      ? "bg-green-100 ml-auto" 
-                      : "bg-blue-100 mr-auto",
-                    message.isInterim && "opacity-70 italic"
+                    "max-w-[90%] rounded-lg px-3 py-2 shadow-sm border border-border/40",
+                    speakerInfo.messageBg,
+                    message.isInterim && "opacity-70 italic",
                   )}
                 >
                   {/* Speaker header */}
-                  <div className={cn(
-                    "flex items-center gap-1 mb-1 text-xs font-medium",
-                    speakerInfo.textColor
-                  )}>
+                  <div className={cn("flex items-center gap-2 mb-1 text-xs font-medium", speakerInfo.textColor)}>
                     <IconComponent className="w-3 h-3" />
                     <span>{speakerInfo.name}</span>
-                    <span className="text-gray-400 ml-auto">
-                      {formatTime(message.timestamp)}
-                    </span>
+                    <span className="text-muted-foreground ml-auto">{formatTime(message.timestamp)}</span>
                   </div>
-                  
+
                   {/* Message text */}
-                  <div className={cn(
-                    "text-sm text-gray-800",
-                    message.isInterim && "text-gray-600"
-                  )}>
-                    {message.text}
-                    {message.isInterim && (
-                      <span className="ml-1 text-gray-400">...</span>
+                  <div
+                    className={cn(
+                      "text-sm leading-relaxed",
+                      message.isInterim ? "text-muted-foreground" : "text-foreground",
                     )}
+                  >
+                    {message.text}
+                    {message.isInterim && <span className="ml-1 text-muted-foreground">...</span>}
                   </div>
                 </div>
               </div>
-            );
+            )
           })
         )}
         <div ref={messagesEndRef} />
       </div>
     </div>
-  );
+  )
 }

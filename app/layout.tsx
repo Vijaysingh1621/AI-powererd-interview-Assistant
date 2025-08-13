@@ -1,34 +1,29 @@
-import type { Metadata } from "next";
-import { Inter, Poppins } from "next/font/google";
-import "./globals.css";
+import type React from "react"
+import "./globals.css"
+import { Inter } from "next/font/google"
+import type { Metadata } from "next"
+import { ThemeProvider } from "@/components/theme-provider"
 
-import { Analytics } from "@vercel/analytics/react";
-
-const inter = Inter({ subsets: ["latin"] });
-const poppins = Poppins({ 
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-poppins"
-});
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "InterviewAI - AI-Powered Interview Assistant",
-  description: "Transform your technical interviews with real-time AI assistance, intelligent transcription, and context-aware responses powered by cutting-edge LLMs and RAG technology.",
-};
+  title: "BlitzQ - Lightning-Fast Interview Answers",
+  description:
+    "AI-powered interview copilot with real-time transcription, intelligent Q&A, and RAG technology for technical interviews.",
+}
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} ${poppins.variable}`}>
-        <div className="min-h-screen bg-white">
+    <html lang="en" suppressHydrationWarning>
+      <body className={inter.className}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}
-        </div>
-        <Analytics />
+        </ThemeProvider>
       </body>
     </html>
-  );
+  )
 }

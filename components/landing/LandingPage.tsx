@@ -1,792 +1,984 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Mic, 
-  Brain, 
-  FileText, 
-  Zap, 
-  Shield, 
-  Users, 
-  Star,
+import { useState, useEffect } from "react"
+import Link from "next/link"
+import Image from "next/image"
+import { motion } from "framer-motion"
+import {
   Check,
-  ArrowRight,
-  Play,
-  ChevronDown,
+  ChevronRight,
   Menu,
   X,
-  Globe,
-  Clock,
-  Target,
-  TrendingUp,
-  Award,
-  Headphones,
-  Database,
-  Search,
-  MessageSquare,
-  BarChart3,
-  Settings,
-  Lock
-} from "lucide-react";
-import Link from "next/link";
+  Moon,
+  Sun,
+  ArrowRight,
+  Star,
+  Zap,
+  Shield,
+  Users,
+  BarChart,
+  Layers,
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useTheme } from "next-themes"
 
-export function LandingPage() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState("pro");
+export default function LandingPage() {
+  const [isScrolled, setIsScrolled] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    const handleScroll = () => {
+      if (window.scrollY > 10) {
+        setIsScrolled(true)
+      } else {
+        setIsScrolled(false)
+      }
+    }
+
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark")
+  }
+
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  }
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 },
+  }
+
+  const features = [
+    {
+      title: "Real-Time Transcription",
+      description:
+        "Capture and transcribe interviewer audio instantly with Deepgram's advanced speech recognition technology.",
+      icon: <Zap className="size-5" />,
+    },
+    {
+      title: "AI-Powered Reasoning",
+      description:
+        "Get instant, intelligent responses powered by Groq's ultra-fast Llama 3 models for immediate interview support.",
+      icon: <BarChart className="size-5" />,
+    },
+    {
+      title: "Smart RAG Integration",
+      description:
+        "Automatically search documents, PDFs, and web sources when additional context is needed for accurate answers.",
+      icon: <Users className="size-5" />,
+    },
+    {
+      title: "Professional UI",
+      description:
+        "Clean, distraction-free interface designed specifically for technical interviews and hiring workflows.",
+      icon: <Shield className="size-5" />,
+    },
+    {
+      title: "Screen & Audio Capture",
+      description: "Seamless screen sharing and audio capture with robust error handling and privacy controls.",
+      icon: <Layers className="size-5" />,
+    },
+    {
+      title: "Citations & Sources",
+      description:
+        "All AI responses include clear citations and sources for transparency and auditability in hiring decisions.",
+      icon: <Star className="size-5" />,
+    },
+  ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
-                <Brain className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                InterviewAI
-              </span>
+    <div className="flex min-h-[100dvh] flex-col">
+      <header
+        className={`sticky top-0 z-50 w-full backdrop-blur-lg transition-all duration-300 ${isScrolled ? "bg-background/80 shadow-sm" : "bg-transparent"}`}
+      >
+        <div className="container flex h-16 items-center justify-between">
+          <div className="flex items-center gap-2 font-bold">
+            <div className="size-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground">
+              B
             </div>
-
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-8">
-              <Link href="#features" className="text-gray-600 hover:text-blue-600 transition-colors">
+            <span>BlitzQ</span>
+          </div>
+          <nav className="hidden md:flex gap-8">
+            <Link
+              href="#features"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Features
+            </Link>
+            <Link
+              href="#testimonials"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Testimonials
+            </Link>
+            <Link
+              href="#pricing"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Pricing
+            </Link>
+            <Link
+              href="#faq"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              FAQ
+            </Link>
+          </nav>
+          <div className="hidden md:flex gap-4 items-center">
+            <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full">
+              {mounted && theme === "dark" ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
+              <span className="sr-only">Toggle theme</span>
+            </Button>
+            <Link
+              href="#"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Log in
+            </Link>
+            <Button className="rounded-full">
+              Get Started
+              <ChevronRight className="ml-1 size-4" />
+            </Button>
+          </div>
+          <div className="flex items-center gap-4 md:hidden">
+            <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full">
+              {mounted && theme === "dark" ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+              <span className="sr-only">Toggle menu</span>
+            </Button>
+          </div>
+        </div>
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="md:hidden absolute top-16 inset-x-0 bg-background/95 backdrop-blur-lg border-b"
+          >
+            <div className="container py-4 flex flex-col gap-4">
+              <Link href="#features" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
                 Features
               </Link>
-              <Link href="#pricing" className="text-gray-600 hover:text-blue-600 transition-colors">
+              <Link href="#testimonials" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
+                Testimonials
+              </Link>
+              <Link href="#pricing" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
                 Pricing
               </Link>
-              <Link href="#testimonials" className="text-gray-600 hover:text-blue-600 transition-colors">
-                Reviews
+              <Link href="#faq" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
+                FAQ
               </Link>
-              <Link href="#demo" className="text-gray-600 hover:text-blue-600 transition-colors">
-                Demo
+              <div className="flex flex-col gap-2 pt-2 border-t">
+                <Link href="#" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
+                  Log in
+                </Link>
+                <Button className="rounded-full">
+                  Get Started
+                  <ChevronRight className="ml-1 size-4" />
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </header>
+      <main className="flex-1">
+        {/* Hero Section */}
+        <section className="w-full py-20 md:py-32 lg:py-40 overflow-hidden">
+          <div className="container px-4 md:px-6 relative">
+            <div className="absolute inset-0 -z-10 h-full w-full bg-white dark:bg-black bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1f1f1f_1px,transparent_1px),linear-gradient(to_bottom,#1f1f1f_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]"></div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-center max-w-3xl mx-auto mb-12"
+            >
+              <Badge className="mb-4 rounded-full px-4 py-1.5 text-sm font-medium" variant="secondary">
+                AI-Powered Interview Assistant
+              </Badge>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+                Lightning-Fast Interview Answers with BlitzQ
+              </h1>
+              <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+                The next-generation AI interview copilot that provides real-time transcription, intelligent Q&A, and
+                contextual support for technical interviews. Powered by advanced LLMs and RAG technology.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button size="lg" className="rounded-full h-12 px-8 text-base">
+                  Start Free Trial
+                  <ArrowRight className="ml-2 size-4" />
+                </Button>
+                <Button size="lg" variant="outline" className="rounded-full h-12 px-8 text-base bg-transparent">
+                  Book a Demo
+                </Button>
+              </div>
+              <div className="flex items-center justify-center gap-4 mt-6 text-sm text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <Check className="size-4 text-primary" />
+                  <span>No credit card</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Check className="size-4 text-primary" />
+                  <span>14-day trial</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Check className="size-4 text-primary" />
+                  <span>Cancel anytime</span>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              className="relative mx-auto max-w-5xl"
+            >
+              <div className="rounded-xl overflow-hidden shadow-2xl border border-border/40 bg-gradient-to-b from-background to-muted/20">
+                <Image
+                  src=""
+                  width={1280}
+                  height={720}
+                  alt="SaaSify dashboard"
+                  className="w-full h-auto"
+                  priority
+                />
+                <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-black/10 dark:ring-white/10"></div>
+              </div>
+              <div className="absolute -bottom-6 -right-6 -z-10 h-[300px] w-[300px] rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 blur-3xl opacity-70"></div>
+              <div className="absolute -top-6 -left-6 -z-10 h-[300px] w-[300px] rounded-full bg-gradient-to-br from-secondary/30 to-primary/30 blur-3xl opacity-70"></div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Logos Section */}
+        {/* <section className="w-full py-12 border-y bg-muted/30">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center">
+              <p className="text-sm font-medium text-muted-foreground">Trusted by innovative companies worldwide</p>
+              <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12 lg:gap-16">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Image
+                    key={i}
+                    src={`/placeholder-logo.svg`}
+                    alt={`Company logo ${i}`}
+                    width={120}
+                    height={60}
+                    className="h-8 w-auto opacity-70 grayscale transition-all hover:opacity-100 hover:grayscale-0"
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </section> */}
+
+        {/* Features Section */}
+        <section id="features" className="w-full py-20 md:py-32">
+          <div className="container px-4 md:px-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="flex flex-col items-center justify-center space-y-4 text-center mb-12"
+            >
+              <Badge className="rounded-full px-4 py-1.5 text-sm font-medium" variant="secondary">
+                Features
+              </Badge>
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Everything You Need to Succeed</h2>
+              <p className="max-w-[800px] text-muted-foreground md:text-lg">
+                Our comprehensive platform provides all the tools you need to streamline your workflow, boost
+                productivity, and achieve your goals.
+              </p>
+            </motion.div>
+
+            <motion.div
+              variants={container}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true }}
+              className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+            >
+              {features.map((feature, i) => (
+                <motion.div key={i} variants={item}>
+                  <Card className="h-full overflow-hidden border-border/40 bg-gradient-to-b from-background to-muted/10 backdrop-blur transition-all hover:shadow-md">
+                    <CardContent className="p-6 flex flex-col h-full">
+                      <div className="size-10 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary mb-4">
+                        {feature.icon}
+                      </div>
+                      <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
+                      <p className="text-muted-foreground">{feature.description}</p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+
+        {/* How It Works Section */}
+        <section className="w-full py-20 md:py-32 bg-muted/30 relative overflow-hidden">
+          <div className="absolute inset-0 -z-10 h-full w-full bg-white dark:bg-black bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1f1f1f_1px,transparent_1px),linear-gradient(to_bottom,#1f1f1f_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_40%,transparent_100%)]"></div>
+
+          <div className="container px-4 md:px-6 relative">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="flex flex-col items-center justify-center space-y-4 text-center mb-16"
+            >
+              <Badge className="rounded-full px-4 py-1.5 text-sm font-medium" variant="secondary">
+                How It Works
+              </Badge>
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Simple Process, Powerful Results</h2>
+              <p className="max-w-[800px] text-muted-foreground md:text-lg">
+                Get started in minutes and see the difference our platform can make for your business.
+              </p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-3 gap-8 md:gap-12 relative">
+              <div className="hidden md:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-border to-transparent -translate-y-1/2 z-0"></div>
+
+              {[
+                {
+                  step: "01",
+                  title: "Create Account",
+                  description: "Sign up in seconds with just your email. No credit card required to get started.",
+                },
+                {
+                  step: "02",
+                  title: "Configure Workspace",
+                  description: "Customize your workspace to match your team's unique workflow and requirements.",
+                },
+                {
+                  step: "03",
+                  title: "Boost Productivity",
+                  description: "Start using our powerful features to streamline processes and achieve your goals.",
+                },
+              ].map((step, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: i * 0.1 }}
+                  className="relative z-10 flex flex-col items-center text-center space-y-4"
+                >
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground text-xl font-bold shadow-lg">
+                    {step.step}
+                  </div>
+                  <h3 className="text-xl font-bold">{step.title}</h3>
+                  <p className="text-muted-foreground">{step.description}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Testimonials Section */}
+        <section id="testimonials" className="w-full py-20 md:py-32">
+          <div className="container px-4 md:px-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="flex flex-col items-center justify-center space-y-4 text-center mb-12"
+            >
+              <Badge className="rounded-full px-4 py-1.5 text-sm font-medium" variant="secondary">
+                Testimonials
+              </Badge>
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Loved by Teams Worldwide</h2>
+              <p className="max-w-[800px] text-muted-foreground md:text-lg">
+                Don't just take our word for it. See what our customers have to say about their experience.
+              </p>
+            </motion.div>
+
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {[
+                {
+                  quote:
+                    "BlitzQ has revolutionized our technical interviews. The real-time transcription and AI suggestions help us ask better follow-up questions and make more informed hiring decisions.",
+                  author: "Sarah Chen",
+                  role: "Senior Technical Recruiter, TechCorp",
+                  rating: 5,
+                },
+                {
+                  quote:
+                    "The RAG integration is incredible. When candidates mention technologies I'm not familiar with, BlitzQ instantly provides context and relevant follow-up questions.",
+                  author: "Michael Rodriguez",
+                  role: "Engineering Manager, StartupX",
+                  rating: 5,
+                },
+                {
+                  quote:
+                    "Our interview quality has improved dramatically. The AI copilot helps us stay focused on the candidate while providing intelligent prompts and summaries.",
+                  author: "Emily Johnson",
+                  role: "Head of Talent, GrowthLabs",
+                  rating: 5,
+                },
+                {
+                  quote:
+                    "BlitzQ's speed is unmatched. Groq's LLM integration provides instant responses that keep our interviews flowing naturally without awkward pauses.",
+                  author: "David Kim",
+                  role: "CTO, InnovateNow",
+                  rating: 5,
+                },
+                {
+                  quote:
+                    "The professional UI is perfect for client-facing interviews. Clean, minimal, and doesn't distract from the conversation while providing powerful AI assistance.",
+                  author: "Lisa Patel",
+                  role: "Technical Interviewing Consultant",
+                  rating: 5,
+                },
+                {
+                  quote:
+                    "Implementation was seamless, and the ROI was immediate. We've reduced our time-to-hire by 40% while improving candidate experience and interview quality.",
+                  author: "James Wilson",
+                  role: "VP of Engineering, ScaleUp Inc",
+                  rating: 5,
+                },
+              ].map((testimonial, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: i * 0.05 }}
+                >
+                  <Card className="h-full overflow-hidden border-border/40 bg-gradient-to-b from-background to-muted/10 backdrop-blur transition-all hover:shadow-md">
+                    <CardContent className="p-6 flex flex-col h-full">
+                      <div className="flex mb-4">
+                        {Array(testimonial.rating)
+                          .fill(0)
+                          .map((_, j) => (
+                            <Star key={j} className="size-4 text-yellow-500 fill-yellow-500" />
+                          ))}
+                      </div>
+                      <p className="text-lg mb-6 flex-grow">{testimonial.quote}</p>
+                      <div className="flex items-center gap-4 mt-auto pt-4 border-t border-border/40">
+                        <div className="size-10 rounded-full bg-muted flex items-center justify-center text-foreground font-medium">
+                          {testimonial.author.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="font-medium">{testimonial.author}</p>
+                          <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Pricing Section */}
+        <section id="pricing" className="w-full py-20 md:py-32 bg-muted/30 relative overflow-hidden">
+          <div className="absolute inset-0 -z-10 h-full w-full bg-white dark:bg-black bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1f1f1f_1px,transparent_1px),linear-gradient(to_bottom,#1f1f1f_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_40%,transparent_100%)]"></div>
+
+          <div className="container px-4 md:px-6 relative">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="flex flex-col items-center justify-center space-y-4 text-center mb-12"
+            >
+              <Badge className="rounded-full px-4 py-1.5 text-sm font-medium" variant="secondary">
+                Pricing
+              </Badge>
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Simple, Transparent Pricing</h2>
+              <p className="max-w-[800px] text-muted-foreground md:text-lg">
+                Choose the plan that's right for your business. All plans include a 14-day free trial.
+              </p>
+            </motion.div>
+
+            <div className="mx-auto max-w-5xl">
+              <Tabs defaultValue="monthly" className="w-full">
+                <div className="flex justify-center mb-8">
+                  <TabsList className="rounded-full p-1">
+                    <TabsTrigger value="monthly" className="rounded-full px-6">
+                      Monthly
+                    </TabsTrigger>
+                    <TabsTrigger value="annually" className="rounded-full px-6">
+                      Annually (Save 20%)
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
+                <TabsContent value="monthly">
+                  <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
+                    {[
+                      {
+                        name: "Interviewer",
+                        price: "$49",
+                        description: "Perfect for individual interviewers and hiring managers.",
+                        features: [
+                          "Up to 50 interviews/month",
+                          "Real-time transcription",
+                          "Basic AI responses",
+                          "Email support",
+                          "Screen sharing",
+                        ],
+                        cta: "Start Free Trial",
+                      },
+                      {
+                        name: "Team",
+                        price: "$149",
+                        description: "Ideal for recruiting teams and departments.",
+                        features: [
+                          "Up to 200 interviews/month",
+                          "Advanced RAG integration",
+                          "Custom knowledge bases",
+                          "Priority support",
+                          "Team analytics",
+                          "API access",
+                        ],
+                        cta: "Start Free Trial",
+                        popular: true,
+                      },
+                      {
+                        name: "Enterprise",
+                        price: "$399",
+                        description: "For large organizations with high-volume hiring.",
+                        features: [
+                          "Unlimited interviews",
+                          "Custom AI models",
+                          "Advanced integrations",
+                          "24/7 dedicated support",
+                          "Custom deployment",
+                          "Compliance features",
+                        ],
+                        cta: "Contact Sales",
+                      },
+                    ].map((plan, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: i * 0.1 }}
+                      >
+                        <Card
+                          className={`relative overflow-hidden h-full ${plan.popular ? "border-primary shadow-lg" : "border-border/40 shadow-md"} bg-gradient-to-b from-background to-muted/10 backdrop-blur`}
+                        >
+                          {plan.popular && (
+                            <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 text-xs font-medium rounded-bl-lg">
+                              Most Popular
+                            </div>
+                          )}
+                          <CardContent className="p-6 flex flex-col h-full">
+                            <h3 className="text-2xl font-bold">{plan.name}</h3>
+                            <div className="flex items-baseline mt-4">
+                              <span className="text-4xl font-bold">{plan.price}</span>
+                              <span className="text-muted-foreground ml-1">/month</span>
+                            </div>
+                            <p className="text-muted-foreground mt-2">{plan.description}</p>
+                            <ul className="space-y-3 my-6 flex-grow">
+                              {plan.features.map((feature, j) => (
+                                <li key={j} className="flex items-center">
+                                  <Check className="mr-2 size-4 text-primary" />
+                                  <span>{feature}</span>
+                                </li>
+                              ))}
+                            </ul>
+                            <Button
+                              className={`w-full mt-auto rounded-full ${plan.popular ? "bg-primary hover:bg-primary/90" : "bg-muted hover:bg-muted/80"}`}
+                              variant={plan.popular ? "default" : "outline"}
+                            >
+                              {plan.cta}
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </div>
+                </TabsContent>
+                <TabsContent value="annually">
+                  <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
+                    {[
+                      {
+                        name: "Starter",
+                        price: "$23",
+                        description: "Perfect for small teams and startups.",
+                        features: ["Up to 5 team members", "Basic analytics", "5GB storage", "Email support"],
+                        cta: "Start Free Trial",
+                      },
+                      {
+                        name: "Professional",
+                        price: "$63",
+                        description: "Ideal for growing businesses.",
+                        features: [
+                          "Up to 20 team members",
+                          "Advanced analytics",
+                          "25GB storage",
+                          "Priority email support",
+                          "API access",
+                        ],
+                        cta: "Start Free Trial",
+                        popular: true,
+                      },
+                      {
+                        name: "Enterprise",
+                        price: "$159",
+                        description: "For large organizations with complex needs.",
+                        features: [
+                          "Unlimited team members",
+                          "Custom analytics",
+                          "Unlimited storage",
+                          "24/7 phone & email support",
+                          "Advanced API access",
+                          "Custom integrations",
+                        ],
+                        cta: "Contact Sales",
+                      },
+                    ].map((plan, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: i * 0.1 }}
+                      >
+                        <Card
+                          className={`relative overflow-hidden h-full ${plan.popular ? "border-primary shadow-lg" : "border-border/40 shadow-md"} bg-gradient-to-b from-background to-muted/10 backdrop-blur`}
+                        >
+                          {plan.popular && (
+                            <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 text-xs font-medium rounded-bl-lg">
+                              Most Popular
+                            </div>
+                          )}
+                          <CardContent className="p-6 flex flex-col h-full">
+                            <h3 className="text-2xl font-bold">{plan.name}</h3>
+                            <div className="flex items-baseline mt-4">
+                              <span className="text-4xl font-bold">{plan.price}</span>
+                              <span className="text-muted-foreground ml-1">/month</span>
+                            </div>
+                            <p className="text-muted-foreground mt-2">{plan.description}</p>
+                            <ul className="space-y-3 my-6 flex-grow">
+                              {plan.features.map((feature, j) => (
+                                <li key={j} className="flex items-center">
+                                  <Check className="mr-2 size-4 text-primary" />
+                                  <span>{feature}</span>
+                                </li>
+                              ))}
+                            </ul>
+                            <Button
+                              className={`w-full mt-auto rounded-full ${plan.popular ? "bg-primary hover:bg-primary/90" : "bg-muted hover:bg-muted/80"}`}
+                              variant={plan.popular ? "default" : "outline"}
+                            >
+                              {plan.cta}
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section id="faq" className="w-full py-20 md:py-32">
+          <div className="container px-4 md:px-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="flex flex-col items-center justify-center space-y-4 text-center mb-12"
+            >
+              <Badge className="rounded-full px-4 py-1.5 text-sm font-medium" variant="secondary">
+                FAQ
+              </Badge>
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Frequently Asked Questions</h2>
+              <p className="max-w-[800px] text-muted-foreground md:text-lg">
+                Find answers to common questions about our platform.
+              </p>
+            </motion.div>
+
+            <div className="mx-auto max-w-3xl">
+              <Accordion type="single" collapsible className="w-full">
+                {[
+                  {
+                    question: "How does the real-time transcription work?",
+                    answer:
+                      "BlitzQ uses Deepgram's advanced speech recognition to transcribe interviewer audio in real-time. Only interviewer/system audio is captured for privacy, and the transcription appears instantly in a clean chat interface.",
+                  },
+                  {
+                    question: "What AI models power BlitzQ?",
+                    answer:
+                      "We use Groq's ultra-fast Llama 3 models for instant AI reasoning and responses. When additional context is needed, our RAG system automatically searches relevant documents and web sources to provide comprehensive answers.",
+                  },
+                  {
+                    question: "Is candidate audio recorded or transcribed?",
+                    answer:
+                      "No, BlitzQ only captures and transcribes interviewer/system audio to ensure candidate privacy and compliance. The focus is on providing AI assistance to the interviewer, not monitoring candidates.",
+                  },
+                  {
+                    question: "How does the RAG system work?",
+                    answer:
+                      "When our LLM needs additional context, intelligent routing automatically triggers RAG agents that search your documents, PDFs, and web sources. All responses include clear citations for transparency.",
+                  },
+                  {
+                    question: "What integrations are available?",
+                    answer:
+                      "BlitzQ integrates with popular ATS systems, video conferencing platforms, and document repositories. Our API allows custom integrations with your existing hiring workflow and tools.",
+                  },
+                  {
+                    question: "How secure is the interview data?",
+                    answer:
+                      "We take security seriously with end-to-end encryption, SOC 2 compliance, and GDPR adherence. Interview data is processed securely and can be automatically deleted based on your retention policies.",
+                  },
+                ].map((faq, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.3, delay: i * 0.05 }}
+                  >
+                    <AccordionItem value={`item-${i}`} className="border-b border-border/40 py-2">
+                      <AccordionTrigger className="text-left font-medium hover:no-underline">
+                        {faq.question}
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground">{faq.answer}</AccordionContent>
+                    </AccordionItem>
+                  </motion.div>
+                ))}
+              </Accordion>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="w-full py-20 md:py-32 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground relative overflow-hidden">
+          <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#ffffff10_1px,transparent_1px),linear-gradient(to_bottom,#ffffff10_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
+          <div className="absolute -top-24 -left-24 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+
+          <div className="container px-4 md:px-6 relative">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="flex flex-col items-center justify-center space-y-6 text-center"
+            >
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight">
+                Ready to Transform Your Interview Process?
+              </h2>
+              <p className="mx-auto max-w-[700px] text-primary-foreground/80 md:text-xl">
+                Join hundreds of hiring teams who have streamlined their technical interviews and improved hiring
+                decisions with BlitzQ's AI-powered copilot.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 mt-4">
+                <Button size="lg" variant="secondary" className="rounded-full h-12 px-8 text-base">
+                  Start Free Trial
+                  <ArrowRight className="ml-2 size-4" />
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="rounded-full h-12 px-8 text-base bg-transparent border-white text-white hover:bg-white/10"
+                >
+                  Schedule a Demo
+                </Button>
+              </div>
+              <p className="text-sm text-primary-foreground/80 mt-4">
+                No credit card required. 14-day free trial. Cancel anytime.
+              </p>
+            </motion.div>
+          </div>
+        </section>
+      </main>
+      <footer className="w-full border-t bg-background/95 backdrop-blur-sm">
+        <div className="container flex flex-col gap-8 px-4 py-10 md:px-6 lg:py-16">
+          <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-4">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 font-bold">
+                <div className="size-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground">
+                  B
+                </div>
+                <span>BlitzQ</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Lightning-fast AI interview copilot. Streamline technical interviews with real-time transcription,
+                intelligent Q&A, and contextual support.
+              </p>
+              <div className="flex gap-4">
+                <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="size-5"
+                  >
+                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                  </svg>
+                  <span className="sr-only">Facebook</span>
+                </Link>
+                <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="size-5"
+                  >
+                    <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path>
+                  </svg>
+                  <span className="sr-only">Twitter</span>
+                </Link>
+                <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="size-5"
+                  >
+                    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                    <rect width="4" height="12" x="2" y="9"></rect>
+                    <circle cx="4" cy="4" r="2"></circle>
+                  </svg>
+                  <span className="sr-only">LinkedIn</span>
+                </Link>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <h4 className="text-sm font-bold">Product</h4>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <Link href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
+                    Features
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">
+                    Pricing
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                    Integrations
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                    API
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div className="space-y-4">
+              <h4 className="text-sm font-bold">Resources</h4>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                    Documentation
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                    Guides
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                    Blog
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                    Support
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div className="space-y-4">
+              <h4 className="text-sm font-bold">Company</h4>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                    About
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                    Careers
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                    Terms of Service
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div className="flex flex-col gap-4 sm:flex-row justify-between items-center border-t border-border/40 pt-8">
+            <p className="text-xs text-muted-foreground">
+              &copy; {new Date().getFullYear()} BlitzQ. All rights reserved.
+            </p>
+            <div className="flex gap-4">
+              <Link href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                Privacy Policy
               </Link>
-              <Button variant="outline" size="sm">
-                Sign In
-              </Button>
-              <Button size="sm" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
-                Start Free Trial
-              </Button>
-            </div>
-
-            {/* Mobile menu button */}
-            <div className="md:hidden">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-              >
-                {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </Button>
-            </div>
-          </div>
-
-          {/* Mobile Navigation */}
-          {isMenuOpen && (
-            <div className="md:hidden py-4 border-t border-gray-200">
-              <div className="flex flex-col space-y-4">
-                <Link href="#features" className="text-gray-600 hover:text-blue-600 transition-colors">
-                  Features
-                </Link>
-                <Link href="#pricing" className="text-gray-600 hover:text-blue-600 transition-colors">
-                  Pricing
-                </Link>
-                <Link href="#testimonials" className="text-gray-600 hover:text-blue-600 transition-colors">
-                  Reviews
-                </Link>
-                <Link href="#demo" className="text-gray-600 hover:text-blue-600 transition-colors">
-                  Demo
-                </Link>
-                <div className="flex flex-col space-y-2 pt-4">
-                  <Button variant="outline" size="sm">
-                    Sign In
-                  </Button>
-                  <Button size="sm" className="bg-gradient-to-r from-blue-600 to-indigo-600">
-                    Start Free Trial
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </nav>
-
-      {/* Hero Section */}
-      <section className="relative py-20 lg:py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-indigo-600/10"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <Badge className="mb-6 bg-blue-100 text-blue-700 border-blue-200">
-              🚀 Now with Advanced RAG Technology
-            </Badge>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6">
-              AI-Powered
-              <span className="block bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Interview Assistant
-              </span>
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Transform your technical interviews with real-time AI assistance, intelligent transcription, 
-              and context-aware responses powered by cutting-edge LLMs and RAG technology.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-              <Button 
-                size="lg" 
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-lg px-8 py-4 h-auto"
-              >
-                Start Free Trial
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="text-lg px-8 py-4 h-auto border-2"
-              >
-                <Play className="mr-2 w-5 h-5" />
-                Watch Demo
-              </Button>
-            </div>
-            <div className="flex items-center justify-center space-x-8 text-sm text-gray-500">
-              <div className="flex items-center">
-                <Check className="w-4 h-4 text-green-500 mr-2" />
-                14-day free trial
-              </div>
-              <div className="flex items-center">
-                <Check className="w-4 h-4 text-green-500 mr-2" />
-                No credit card required
-              </div>
-              <div className="flex items-center">
-                <Check className="w-4 h-4 text-green-500 mr-2" />
-                Cancel anytime
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-blue-600 mb-2">10K+</div>
-              <div className="text-gray-600">Interviews Conducted</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-indigo-600 mb-2">95%</div>
-              <div className="text-gray-600">Accuracy Rate</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-purple-600 mb-2">500+</div>
-              <div className="text-gray-600">Companies Trust Us</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-green-600 mb-2">2.5s</div>
-              <div className="text-gray-600">Average Response Time</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section id="features" className="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Powerful Features for Modern Interviews
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Everything you need to conduct professional, efficient, and insightful technical interviews
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Real-time Transcription */}
-            <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg">
-              <CardHeader>
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Mic className="w-6 h-6 text-white" />
-                </div>
-                <CardTitle className="text-xl">Real-Time Transcription</CardTitle>
-                <CardDescription>
-                  Advanced speech-to-text powered by Deepgram with 95%+ accuracy
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-center">
-                    <Check className="w-4 h-4 text-green-500 mr-2" />
-                    Live interviewer audio capture
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="w-4 h-4 text-green-500 mr-2" />
-                    Screen sharing integration
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="w-4 h-4 text-green-500 mr-2" />
-                    Speaker identification
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* AI Reasoning */}
-            <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg">
-              <CardHeader>
-                <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Brain className="w-6 h-6 text-white" />
-                </div>
-                <CardTitle className="text-xl">Intelligent AI Responses</CardTitle>
-                <CardDescription>
-                  Ultra-fast LLM responses with intelligent routing and context awareness
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-center">
-                    <Check className="w-4 h-4 text-green-500 mr-2" />
-                    Groq LLM integration (Llama 3)
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="w-4 h-4 text-green-500 mr-2" />
-                    Smart knowledge routing
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="w-4 h-4 text-green-500 mr-2" />
-                    Progressive enhancement
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* RAG Technology */}
-            <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg">
-              <CardHeader>
-                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Database className="w-6 h-6 text-white" />
-                </div>
-                <CardTitle className="text-xl">RAG Technology</CardTitle>
-                <CardDescription>
-                  Retrieval-Augmented Generation for context-rich, accurate responses
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-center">
-                    <Check className="w-4 h-4 text-green-500 mr-2" />
-                    Document search & analysis
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="w-4 h-4 text-green-500 mr-2" />
-                    Web knowledge integration
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="w-4 h-4 text-green-500 mr-2" />
-                    Source citations
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Question Extraction */}
-            <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg">
-              <CardHeader>
-                <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Search className="w-6 h-6 text-white" />
-                </div>
-                <CardTitle className="text-xl">Smart Question Detection</CardTitle>
-                <CardDescription>
-                  Automatically extracts and analyzes questions from conversations
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-center">
-                    <Check className="w-4 h-4 text-green-500 mr-2" />
-                    Automatic question extraction
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="w-4 h-4 text-green-500 mr-2" />
-                    Confidence scoring
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="w-4 h-4 text-green-500 mr-2" />
-                    Context understanding
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Analytics */}
-            <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg">
-              <CardHeader>
-                <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <BarChart3 className="w-6 h-6 text-white" />
-                </div>
-                <CardTitle className="text-xl">Interview Analytics</CardTitle>
-                <CardDescription>
-                  Comprehensive insights and performance metrics for better hiring
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-center">
-                    <Check className="w-4 h-4 text-green-500 mr-2" />
-                    Performance tracking
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="w-4 h-4 text-green-500 mr-2" />
-                    Response analysis
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="w-4 h-4 text-green-500 mr-2" />
-                    Detailed reports
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Security */}
-            <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg">
-              <CardHeader>
-                <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Shield className="w-6 h-6 text-white" />
-                </div>
-                <CardTitle className="text-xl">Enterprise Security</CardTitle>
-                <CardDescription>
-                  Bank-level security with privacy-first design and compliance
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-center">
-                    <Check className="w-4 h-4 text-green-500 mr-2" />
-                    End-to-end encryption
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="w-4 h-4 text-green-500 mr-2" />
-                    GDPR compliant
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="w-4 h-4 text-green-500 mr-2" />
-                    SOC 2 certified
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              How It Works
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Get started in minutes with our intuitive three-step process
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-2xl font-bold text-white">1</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-4">Connect & Setup</h3>
-              <p className="text-gray-600">
-                Start screen sharing and connect your audio. Our system automatically begins transcribing interviewer speech in real-time.
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-2xl font-bold text-white">2</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-4">AI Analysis</h3>
-              <p className="text-gray-600">
-                Our AI extracts questions, searches relevant documents, and prepares context-aware responses using advanced RAG technology.
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-2xl font-bold text-white">3</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-4">Get Insights</h3>
-              <p className="text-gray-600">
-                Receive intelligent suggestions, follow-up questions, and detailed analytics to make better hiring decisions.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing Section */}
-      <section id="pricing" className="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Simple, Transparent Pricing
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Choose the perfect plan for your team size and interview volume
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {/* Starter Plan */}
-            <Card className={`relative ${selectedPlan === 'starter' ? 'ring-2 ring-blue-500' : ''} hover:shadow-xl transition-all duration-300`}>
-              <CardHeader className="text-center pb-8">
-                <CardTitle className="text-2xl">Starter</CardTitle>
-                <div className="mt-4">
-                  <span className="text-4xl font-bold">$29</span>
-                  <span className="text-gray-600">/month</span>
-                </div>
-                <CardDescription className="mt-2">
-                  Perfect for small teams and individual interviewers
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-center">
-                    <Check className="w-5 h-5 text-green-500 mr-3" />
-                    Up to 50 interviews/month
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="w-5 h-5 text-green-500 mr-3" />
-                    Real-time transcription
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="w-5 h-5 text-green-500 mr-3" />
-                    Basic AI responses
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="w-5 h-5 text-green-500 mr-3" />
-                    Email support
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="w-5 h-5 text-green-500 mr-3" />
-                    Basic analytics
-                  </li>
-                </ul>
-                <Button 
-                  className="w-full" 
-                  variant={selectedPlan === 'starter' ? 'default' : 'outline'}
-                  onClick={() => setSelectedPlan('starter')}
-                >
-                  Start Free Trial
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Pro Plan */}
-            <Card className={`relative ${selectedPlan === 'pro' ? 'ring-2 ring-blue-500' : ''} hover:shadow-xl transition-all duration-300`}>
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <Badge className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
-                  Most Popular
-                </Badge>
-              </div>
-              <CardHeader className="text-center pb-8">
-                <CardTitle className="text-2xl">Pro</CardTitle>
-                <div className="mt-4">
-                  <span className="text-4xl font-bold">$79</span>
-                  <span className="text-gray-600">/month</span>
-                </div>
-                <CardDescription className="mt-2">
-                  Ideal for growing teams and professional recruiters
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-center">
-                    <Check className="w-5 h-5 text-green-500 mr-3" />
-                    Up to 200 interviews/month
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="w-5 h-5 text-green-500 mr-3" />
-                    Advanced RAG technology
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="w-5 h-5 text-green-500 mr-3" />
-                    Document upload & search
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="w-5 h-5 text-green-500 mr-3" />
-                    Priority support
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="w-5 h-5 text-green-500 mr-3" />
-                    Advanced analytics
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="w-5 h-5 text-green-500 mr-3" />
-                    Team collaboration
-                  </li>
-                </ul>
-                <Button 
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" 
-                  onClick={() => setSelectedPlan('pro')}
-                >
-                  Start Free Trial
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Enterprise Plan */}
-            <Card className={`relative ${selectedPlan === 'enterprise' ? 'ring-2 ring-blue-500' : ''} hover:shadow-xl transition-all duration-300`}>
-              <CardHeader className="text-center pb-8">
-                <CardTitle className="text-2xl">Enterprise</CardTitle>
-                <div className="mt-4">
-                  <span className="text-4xl font-bold">Custom</span>
-                </div>
-                <CardDescription className="mt-2">
-                  For large organizations with custom requirements
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-center">
-                    <Check className="w-5 h-5 text-green-500 mr-3" />
-                    Unlimited interviews
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="w-5 h-5 text-green-500 mr-3" />
-                    Custom integrations
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="w-5 h-5 text-green-500 mr-3" />
-                    On-premise deployment
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="w-5 h-5 text-green-500 mr-3" />
-                    24/7 dedicated support
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="w-5 h-5 text-green-500 mr-3" />
-                    Custom analytics
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="w-5 h-5 text-green-500 mr-3" />
-                    SLA guarantee
-                  </li>
-                </ul>
-                <Button 
-                  className="w-full" 
-                  variant={selectedPlan === 'enterprise' ? 'default' : 'outline'}
-                  onClick={() => setSelectedPlan('enterprise')}
-                >
-                  Contact Sales
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="text-center mt-12">
-            <p className="text-gray-600 mb-4">All plans include a 14-day free trial. No credit card required.</p>
-            <div className="flex items-center justify-center space-x-8 text-sm text-gray-500">
-              <div className="flex items-center">
-                <Shield className="w-4 h-4 mr-2" />
-                SOC 2 Compliant
-              </div>
-              <div className="flex items-center">
-                <Lock className="w-4 h-4 mr-2" />
-                GDPR Ready
-              </div>
-              <div className="flex items-center">
-                <Headphones className="w-4 h-4 mr-2" />
-                24/7 Support
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section id="testimonials" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Trusted by Industry Leaders
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              See what hiring managers and technical recruiters are saying about InterviewAI
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card className="hover:shadow-xl transition-all duration-300">
-              <CardContent className="pt-6">
-                <div className="flex items-center mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                  ))}
-                </div>
-                <p className="text-gray-600 mb-6">
-                  &ldquo;InterviewAI has completely transformed our technical hiring process. The real-time insights and AI-powered suggestions have helped us identify top talent 3x faster.&rdquo;
-                </p>
-                <div className="flex items-center">
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mr-4">
-                    <span className="text-white font-semibold">SJ</span>
-                  </div>
-                  <div>
-                    <div className="font-semibold">Sarah Johnson</div>
-                    <div className="text-sm text-gray-500">VP of Engineering, TechCorp</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-xl transition-all duration-300">
-              <CardContent className="pt-6">
-                <div className="flex items-center mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                  ))}
-                </div>
-                <p className="text-gray-600 mb-6">
-                  &ldquo;The RAG technology is incredible. It pulls relevant information from our company docs and provides context-aware responses that feel natural and helpful.&rdquo;
-                </p>
-                <div className="flex items-center">
-                  <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-teal-500 rounded-full flex items-center justify-center mr-4">
-                    <span className="text-white font-semibold">MC</span>
-                  </div>
-                  <div>
-                    <div className="font-semibold">Michael Chen</div>
-                    <div className="text-sm text-gray-500">Head of Talent, StartupXYZ</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-xl transition-all duration-300">
-              <CardContent className="pt-6">
-                <div className="flex items-center mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                  ))}
-                </div>
-                <p className="text-gray-600 mb-6">
-                  &ldquo;As a technical recruiter, this tool has been a game-changer. The analytics help me understand candidate performance and improve our interview process continuously.&rdquo;
-                </p>
-                <div className="flex items-center">
-                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-4">
-                    <span className="text-white font-semibold">ER</span>
-                  </div>
-                  <div>
-                    <div className="font-semibold">Emily Rodriguez</div>
-                    <div className="text-sm text-gray-500">Senior Technical Recruiter, BigTech</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-indigo-600">
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-            Ready to Transform Your Interviews?
-          </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of companies already using InterviewAI to hire better, faster, and smarter.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button 
-              size="lg" 
-              className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-4 h-auto"
-            >
-              Start Your Free Trial
-              <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="border-white text-white hover:bg-white hover:text-blue-600 text-lg px-8 py-4 h-auto"
-            >
-              Schedule Demo
-            </Button>
-          </div>
-          <p className="text-blue-200 text-sm mt-6">
-            14-day free trial • No credit card required • Cancel anytime
-          </p>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-6">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                  <Brain className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold">InterviewAI</span>
-              </div>
-              <p className="text-gray-400 mb-6">
-                The future of technical interviews, powered by AI and designed for modern hiring teams.
-              </p>
-              <div className="flex space-x-4">
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-                  <Globe className="w-5 h-5" />
-                </Button>
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-                  <MessageSquare className="w-5 h-5" />
-                </Button>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="font-semibold mb-4">Product</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link href="#features" className="hover:text-white transition-colors">Features</Link></li>
-                <li><Link href="#pricing" className="hover:text-white transition-colors">Pricing</Link></li>
-                <li><Link href="#demo" className="hover:text-white transition-colors">Demo</Link></li>
-                <li><Link href="/integrations" className="hover:text-white transition-colors">Integrations</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-semibold mb-4">Company</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link href="/about" className="hover:text-white transition-colors">About</Link></li>
-                <li><Link href="/careers" className="hover:text-white transition-colors">Careers</Link></li>
-                <li><Link href="/blog" className="hover:text-white transition-colors">Blog</Link></li>
-                <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-semibold mb-4">Support</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link href="/help" className="hover:text-white transition-colors">Help Center</Link></li>
-                <li><Link href="/docs" className="hover:text-white transition-colors">Documentation</Link></li>
-                <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
-                <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-400 text-sm">
-              © 2024 InterviewAI. All rights reserved.
-            </p>
-            <div className="flex items-center space-x-6 mt-4 md:mt-0">
-              <span className="text-gray-400 text-sm">Made with ❤️ for better hiring</span>
+              <Link href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                Terms of Service
+              </Link>
+              <Link href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                Cookie Policy
+              </Link>
             </div>
           </div>
         </div>
       </footer>
     </div>
-  );
+  )
 }
