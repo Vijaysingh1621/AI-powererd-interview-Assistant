@@ -8,7 +8,7 @@ const groq = new Groq({
 export default groq;
 
 // Available Groq models - using currently supported models
-export const GROQ_MODEL = 'llama3-70b-8192'; // High-quality model for complex reasoning
+export const GROQ_MODEL = 'llama-3.1-8b-instant'; // High-quality model for complex reasoning
 export const GROQ_MODEL_FAST = 'llama-3.1-8b-instant'; // Ultra-fast for quick responses
 export const GROQ_MODEL_BALANCED = 'llama3-8b-8192'; // Balanced speed and quality
 
